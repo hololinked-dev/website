@@ -5,7 +5,160 @@ authors:
     name: Vignesh Venkatasubramanian Vaidyanathan
 ---
 
+import SpectrometerApp from '../../src/components/examples/spectrometer/spectrometer' 
+
 # Introduction
 
-This article is a logical continuation of the spectrometer device dealt in hololinked python docs
-After the device server has been written, one will require a GUI to interact with it. 
+This article is a logical continuation of the spectrometer device dealt in [hololinked python docs](https://hololinked.readthedocs.io/examples/server/spectrometer/index.html).
+After the device server has been written, one will require a GUI to interact with it. In this example, [React Material UI](https://mui.com/) will be used. 
+There is a [template repository here](https://github.com/VigneshVSV/hololinked-gui-examples-template) 
+where one can install all dependencies used by this example, please follow the corresponding README. 
+
+###### Knowledge Prerequisites to follow without a problem
+- ReactJS with hooks  
+- React Material UI
+
+One can start off by writing a device search bar embedded in an app bar: 
+
+```tsx showLineNumbers title='/src/App.tsx'
+export const DeviceSearchBar = () => {    
+    return (
+        <AppBar color="inherit" sx={{ pt : 0.5 }}>
+            <Toolbar variant="dense">
+                <Typography fontSize={20}>
+                    Spectrometer
+                </Typography>
+                <Box sx={{pl : 2, display : 'flex', flexGrow : 0.5}}>
+                    <TextField 
+                        size="small" 
+                        label="Device URL"            
+                        sx={{ display : 'flex', flexGrow : 1 }}
+                    />
+                </Box>
+                <IconButton>
+                    <SearchIcon />
+                </IconButton>
+            </Toolbar>
+        </AppBar>
+    )
+}
+
+function App() {
+    return (
+        <><DeviceSearchBar /></>
+    );
+}
+
+export default App;
+```
+
+{/* somehow the live feature is simply not good enough or always has bugs, so for now the component is re-written and rendered within MDX */}
+Output:
+<SpectrometerApp />
+
+We show the type of device we search, the user enters the absolute URL to the device & the search button finds and loads the device state-machine state if applicable. 
+
+Generally, once the URL is valid (i.e. remote object is found), we would like to pass the URL down through all the components which talk to the device (it will be clear later why). 
+To complete the logic, we first create a context where we store the device URL & its current state. 
+
+```tsx showLineNumbers title='/src/App.tsx'
+// ... imports ... 
+
+export type Device = { 
+    URL : string
+    state : string 
+}
+
+export const DeviceContext = createContext<any | [Device, Function]>(null)
+
+const unknownDevice = {
+    URL : '',
+    state : 'unknown'
+}
+
+function App() {
+
+    const [device, setDevice] = useState(unknownDevice)
+   
+    return (
+        <DeviceContext.Provider value={[device, setDevice]}>
+            <DeviceSearchBar />
+            <Toolbar variant="dense" />
+            {/* toolbar adds padding & should be similar to defined in DeviceSearchBar */}
+        </DeviceContext.Provider>
+        
+    );
+}
+
+// const DeviceSearchBar = () => { ...
+// ... }
+```
+
+We pass both the initial undefined value and the logic to update the value of the context within the 
+`DeviceContext.Provider` logic. Within the device search bar, we add the logic to search the device now:
+
+
+```tsx {43-45,47} showLineNumbers title='/src/App.tsx'
+// ...
+// function App() {
+//    ... }
+
+export const DeviceSearchBar = () => {    
+    const [deviceURL, setDeviceURL] = useState<string>('https://localhost:8083/spectrometer/ocean-optics/USB2000-plus') 
+    const [deviceFound, setDeviceFound] = useState<boolean | null>(null)
+    const [_, setDevice] = useContext(DeviceContext)
+
+    const loadDevice = async() => {
+        let device : Device = unknownDevice
+        let _deviceFound : boolean = false
+        try {
+            const response = await axios.get(`${deviceURL}/state`)
+            switch(response.status){
+                case 200  : 
+                case 202  : device = {
+                                URL : deviceURL,
+                                state : response.data.returnValue
+                            }; 
+                            _deviceFound = true;
+                            break;
+
+                case 404  : _deviceFound = false; 
+            }
+        } catch (error) {
+            _deviceFound = false      
+        }
+        setDevice(device)
+        setDeviceFound(_deviceFound)
+        console.debug(device)
+    }
+
+    return(
+        <AppBar color="inherit" sx={{ pt : 0.5 }}>
+            {/* padding top for TextField label to not be covered by browser search bar */}
+            <Toolbar variant="dense"> 
+                {/* ... */}
+                <TextField 
+                    size="small" 
+                    label="Device URL"            
+                    sx={{ display : 'flex', flexGrow : 1 }}
+                    error={deviceFound !== null && !deviceFound}
+                    value={deviceURL}
+                    onChange={(event) => setDeviceURL(event.target.value)}
+                />
+                <IconButton onClick={loadDevice}>
+                    <SearchIcon />
+                </IconButton>
+            </Toolbar>
+        </AppBar>
+    )
+}
+
+export default App
+```
+
+In short, we will provide a default device URL using the `deviceURL` variable, which will be changed by the `<TextField onChange...>` event. 
+The `loadDevice` function is called by the search icon. It tries to locate the spectrometer and read its state.  When successful,
+the state & the URL is updated in the context. When not successful, we set the `error` flag to true, which will show red colour around the 
+`<TextField />`. The `setDevice` and `setDeviceFound` is called at outer level due to react hooks not suitable for 
+conditional statements. Currenly, `hololinked` operates with an insecure CORS policy ('*' - all are allowed), if you have a suitable spectrometer & its 
+RemoteObject accessible, you could already try the app bar functionality. 

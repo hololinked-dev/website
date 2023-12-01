@@ -3,14 +3,13 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 
-prismThemes.jettwaveLight.plain.backgroundColor = "#f0f4c3" // "#cddc39" // "#8eb247" // "#CCFF66"
+prismThemes.jettwaveLight.plain.backgroundColor = "#f0f4c3" 
 
-// "#9EE493"
-
-//'#6DA34D'
-
-// '#88D18A'
-
+/* 
+Some useful colors - dont remove 
+    "#cddc39", "#8eb247", "#CCFF66"
+    "#9EE493", "#6DA34D", "#88D18A"
+*/
 
 const config: Config = {
     title: 'hololinked',
@@ -48,7 +47,7 @@ const config: Config = {
                 },
                 blog: {
                     showReadingTime: true,
-                    editUrl: 'https://github.com/VigneshVSV/hololinked-website/blob/main/blog',
+                    editUrl: 'https://github.com/VigneshVSV/hololinked-website/tree/main/blog',
                 },
                 theme: {
                         customCss: './src/css/custom.css',
@@ -67,16 +66,12 @@ const config: Config = {
             //     src: 'img/logo.svg',
             // },
             items: [
-                // {
-                //   type: 'docSidebar',
-                //   sidebarId: 'tutorialSidebar',
-                //   position: 'left',
-                //   label: 'Tutorial',
-                // },
                 { 
-                    to: '/blog', 
+                    to: '/doc', 
                     label: 'Blog', 
-                    position: 'left'
+                    position: 'left',
+                    type: 'docSidebar',
+                    sidebarId: 'blogAsDocSidebar',
                 },
                 {
                     href: 'https://github.com/VigneshVSV/hololinked',
@@ -87,45 +82,45 @@ const config: Config = {
         },
         footer: {
             links: [
-            // {
-            //     title: 'Docs',
-            //     items: [
-            //         {
-            //             label: 'Tutorial',
-            //             to: '/docs/intro',
-            //         },
-            //     ],
-            // },
-            // {
-            //     title: 'Community',
-            //     items: [
-            //         {
-            //             label: 'Stack Overflow',
-            //             href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            //         },
-            //         {
-            //             label: 'Discord',
-            //             href: 'https://discordapp.com/invite/docusaurus',
-            //         },
-            //         {
-            //             label: 'Twitter',
-            //             href: 'https://twitter.com/docusaurus',
-            //         },
-            //     ],
-            // },
-            // {
-            //     title: 'More',
-            //     items: [
-            //         {
-            //             label: 'contact',
-            //             to: '/blog',
-            //         },
-            //         // {
-            //         //     label: 'GitHub',
-            //         //     href: 'https://github.com/VigneshVSV/hololinked',
-            //         // },
-            //     ],
-            // },
+                // {
+                //     title: 'Docs',
+                //     items: [
+                //         {
+                //             label: 'Tutorial',
+                //             to: '/docs/intro',
+                //         },
+                //     ],
+                // },
+                // {
+                //     title: 'Community',
+                //     items: [
+                //         {
+                //             label: 'Stack Overflow',
+                //             href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+                //         },
+                //         {
+                //             label: 'Discord',
+                //             href: 'https://discordapp.com/invite/docusaurus',
+                //         },
+                //         {
+                //             label: 'Twitter',
+                //             href: 'https://twitter.com/docusaurus',
+                //         },
+                //     ],
+                // },
+                // {
+                //     title: 'More',
+                //     items: [
+                //         {
+                //             label: 'contact',
+                //             to: '/blog',
+                //         },
+                //         // {
+                //         //     label: 'GitHub',
+                //         //     href: 'https://github.com/VigneshVSV/hololinked',
+                //         // },
+                //     ],
+                // },
             ],
             copyright: `Copyright © ${new Date().getFullYear()} Vignesh Venkatasubramanian Vaidyanathan. Built with Docusaurus.`,
         },

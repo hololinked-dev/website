@@ -12,15 +12,15 @@ import axios from 'axios';
 
 export type Device = { 
     URL : string
-    // info : any
     state : string 
 }
 
-export const DeviceContext = createContext<any | [Device, Function]>(null)
+export type DeviceContextType = [Device, Function]
 
-const unknownDevice = {
+export const DeviceContext = createContext<null | DeviceContextType>(null)
+
+export const unknownDevice = {
     URL : '',
-    // info : {},
     state : 'unknown'
 }
 
@@ -41,7 +41,7 @@ function SpectrometerApp() {
 }
 
 
-const DeviceSearchBar = () => {
+export const DeviceSearchBar = () => {
 
     const [deviceURL, setDeviceURL] = useState<string>('https://localhost:8083/spectrometer/ocean-optics/USB2000-plus')
     const [deviceFound, setDeviceFound] = useState<boolean | null>(null)

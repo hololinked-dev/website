@@ -5,18 +5,28 @@ authors:
     name: Vignesh Venkatasubramanian Vaidyanathan
 ---
 
-import SpectrometerApp from '../../src/components/examples/spectrometer/spectrometer' 
+import SpectrometerApp from '../../src/components/examples/spectrometer/App' 
 
 
-One can start off by writing a device search bar embedded in an app bar: 
+One can start off by writing a device search text input embedded in an app bar: 
+
+{/* somehow the live feature is simply not good enough or always has bugs, so for now the component is re-written and rendered within MDX */}
+Expected Output:
+<SpectrometerApp />
+
+There may be many instances of the device server running for different spectrometers (of same kind), therefore we show the type of device we search, 
+the user enters the absolute URL to the device & presses the search button. 
 
 ```tsx showLineNumbers title='/src/App.tsx'
+import { Box, Button, Divider, Link, Tabs, Typography, 
+            Tab, AppBar, Toolbar, TextField, IconButton} from "@mui/material";
+
 export const DeviceSearchBar = () => {    
     return (
         <AppBar color="inherit" sx={{ pt : 0.5 }}>
             <Toolbar variant="dense">
                 <Typography fontSize={20}>
-                    Spectrometer
+                    OceanOptics Spectrometer
                 </Typography>
                 <Box sx={{pl : 2, display : 'flex', flexGrow : 0.5}}>
                     <TextField 
@@ -35,36 +45,37 @@ export const DeviceSearchBar = () => {
 
 function App() {
     return (
-        <><DeviceSearchBar /></>
+        <>
+            <DeviceSearchBar />
+        </>
     );
 }
 
 export default App;
 ```
 
-{/* somehow the live feature is simply not good enough or always has bugs, so for now the component is re-written and rendered within MDX */}
-Output:
-<SpectrometerApp />
+The search button finds and loads the device state-machine state if applicable. Generally, once the URL is valid (i.e. remote object is found), 
+we would like to pass the URL down through all the components which talk to the device (if not clear why, it will be later). 
+Therefore, we create a context where we store the device URL & its current state to pass the value to all the children. 
 
-We show the type of device we search, the user enters the absolute URL to the device & the search button finds and loads the device state-machine state if applicable. 
-
-Generally, once the URL is valid (i.e. remote object is found), we would like to pass the URL down through all the components which talk to the device (it will be clear later why). 
-To complete the logic, we first create a context where we store the device URL & its current state. 
-
-```tsx showLineNumbers title='/src/App.tsx'
+```tsx {24,29} showLineNumbers title='/src/App.tsx'
 // ... imports ... 
+import { useCallback, useState, createContext, useContext } from 'react';
 
 export type Device = { 
     URL : string
     state : string 
 }
 
-export const DeviceContext = createContext<any | [Device, Function]>(null)
+type DeviceContextType = [Device, Function]
 
-const unknownDevice = {
+export const DeviceContext = createContext<null | DeviceContextType>(null)
+
+const unknownDevice : Device = {
     URL : '',
     state : 'unknown'
 }
+
 
 function App() {
 
@@ -75,6 +86,7 @@ function App() {
             <DeviceSearchBar />
             <Toolbar variant="dense" />
             {/* toolbar adds padding & should be similar to defined in DeviceSearchBar */}
+            {/* other children will come here */}
         </DeviceContext.Provider>
         
     );
@@ -84,11 +96,13 @@ function App() {
 // ... }
 ```
 
-We pass both the initial undefined value and the logic to update the value of the context within the 
-`DeviceContext.Provider` logic. Within the device search bar, we add the logic to search the device now:
+We pass both the initial dummy value `unknownDevice` and the logic to update the value of the context within the 
+`DeviceContext.Provider` logic. The dummy value is used to indicate that a valid device has not been contacted yet. 
+Within the device search bar, we add the logic to search the device now:
 
 
-```tsx {43-45,47} showLineNumbers title='/src/App.tsx'
+```tsx {9,44-46,48} showLineNumbers title='/src/App.tsx'
+import axios from 'axios';
 // ...
 // function App() {
 //    ... }
@@ -96,16 +110,15 @@ We pass both the initial undefined value and the logic to update the value of th
 export const DeviceSearchBar = () => {    
     const [deviceURL, setDeviceURL] = useState<string>('https://localhost:8083/spectrometer/ocean-optics/USB2000-plus') 
     const [deviceFound, setDeviceFound] = useState<boolean | null>(null)
-    const [_, setDevice] = useContext(DeviceContext)
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
 
     const loadDevice = async() => {
-        let device : Device = unknownDevice
+        let _device : Device = device
         let _deviceFound : boolean = false
         try {
             const response = await axios.get(`${deviceURL}/state`)
             switch(response.status){
-                case 200  : 
-                case 202  : device = {
+                case 200  : _device = {
                                 URL : deviceURL,
                                 state : response.data.returnValue
                             }; 
@@ -116,10 +129,11 @@ export const DeviceSearchBar = () => {
             }
         } catch (error) {
             _deviceFound = false      
+            console.log(error)
         }
-        setDevice(device)
+        setDevice(_device)
         setDeviceFound(_deviceFound)
-        console.debug(device)
+        console.debug(_device)
     }
 
     return(
@@ -151,4 +165,4 @@ The `loadDevice` function is called by the search icon. It tries to locate the s
 the state & the URL is updated in the context. When not successful, we set the `error` flag to true, which will show red colour around the 
 `<TextField />`. The `setDevice` and `setDeviceFound` is called at outer level due to react hooks not suitable for 
 conditional statements. Currenly, `hololinked` operates with an insecure CORS policy ('*' - all are allowed), if you have a suitable spectrometer & its 
-RemoteObject accessible, you could already try the app bar functionality. 
+RemoteObject accessible, you could already try the app bar functionality from the example output at the top of the page. 

@@ -1,0 +1,3 @@
+[submodule "src/examples/hololinked-spectrometer-gui"]
+	path = src/examples/hololinked-spectrometer-gui
+	url = https://github.com/VigneshVSV/hololinked-spectrometer-gui.git

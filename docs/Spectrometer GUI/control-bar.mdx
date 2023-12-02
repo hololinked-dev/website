@@ -5,10 +5,30 @@ authors:
     name: Vignesh Venkatasubramanian Vaidyanathan
 ---
 
-import { ControlApp } from '@site/src/components/examples/spectrometer/documentation/control-bar'
+
+import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
+import BrowserOnly from '@docusaurus/BrowserOnly';
+
+
+export function BrowserControlApp() {
+    
+    return (
+        <div>
+            {ExecutionEnvironment.canUseDOM? 
+                <BrowserOnly>
+                    {() => {
+                        const ControlApp = require('@site/src/components/examples/spectrometer/documentation/control-bar').ControlApp
+                        return <ControlApp />
+                    }} 
+                </BrowserOnly> : 
+                <h6>Cant use SSR</h6>
+            }
+        </div>
+    )
+}
 
 Approximate Output:
-<ControlApp />
+<BrowserControlApp />
 
 
 

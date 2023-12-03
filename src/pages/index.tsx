@@ -1,7 +1,7 @@
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import { Box, Stack, Typography, Link, Container, Grid } from '@mui/material';
+import { Box, Stack, Typography, Grid } from '@mui/material';
 import Layout from '@theme/Layout';
-
+import Link from '@docusaurus/Link';
 
 
 export default function Home(): JSX.Element {
@@ -26,11 +26,7 @@ export default function Home(): JSX.Element {
                             Use hololinked for data-acquisition and control applications through your local/domain network while python being your language of choice. <br />
                             Benefit from HTTP support to write browser based GUI's and the modern features & elegant frameworks web development offers. 
                         </Typography>
-                        <Link 
-                            onClick={() => {window.open('https://hololinked.readthedocs.io')}}
-                            sx={{ cursor : 'pointer', pt : 2 }}
-                            underline='hover'
-                        >
+                        <Link to='https://hololinked.readthedocs.io'>
                             official python documentation - hololinked.readthedocs.io
                         </Link>
                         <RepositoryTable />
@@ -61,15 +57,27 @@ const RepositoryTable = () => {
                 <tbody>
                     <tr>
                         <td>hololinked core (python server-side)</td>
-                        <td><Link>https://github.com/VigneshVSV/hololinked</Link></td>
+                        <td>
+                            <Link to='https://github.com/VigneshVSV/hololinked'>
+                                https://github.com/VigneshVSV/hololinked
+                            </Link>
+                        </td>
                     </tr>
                     <tr>
                         <td>python examples</td>
-                        <td><Link>https://github.com/VigneshVSV/hololinked-examples</Link></td>
+                        <td>
+                            <Link to='https://github.com/VigneshVSV/hololinked-examples'>
+                                https://github.com/VigneshVSV/hololinked-examples
+                            </Link>
+                        </td>
                     </tr>
                     <tr>
                         <td>client GUI (admin panel)</td>
-                        <td><Link>https://github.com/VigneshVSV/hololinked-portal</Link></td>
+                        <td>
+                            <Link to='https://github.com/VigneshVSV/hololinked-portal'>
+                                https://github.com/VigneshVSV/hololinked-portal
+                            </Link>
+                        </td>
                     </tr>
                 </tbody>
             </table>

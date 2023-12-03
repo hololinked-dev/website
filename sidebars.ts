@@ -22,6 +22,7 @@ const sidebars : SidebarsConfig = {
                     collapsed: true,
                     items: [
                         'Spectrometer GUI/control-bar',
+                        'Spectrometer GUI/spectrum-graph'
                     ]
                 }
             ],

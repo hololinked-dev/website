@@ -5,6 +5,13 @@
  */
 
 /* You can override the default Infima variables here. */
+
+/* 
+Some useful colors - dont remove 
+    "#cddc39", "#8eb247", "#CCFF66"
+    "#9EE493", "#6DA34D", "#88D18A"
+*/
+
 :root {
     --ifm-color-primary: #2e8555;
     --ifm-color-primary-dark: #29784c;
@@ -19,6 +26,7 @@
     --ifm-background-color: #ecbc88;
     --ifm-navbar-background-color: #cd9252;
     --ifm-footer-background-color: #c3915c;
+    --ifm-code-background : #CCFF66;
     --ifm-link-color : #145C9E;
     --ifm-table-border-color : #800c0c;
 }
@@ -35,8 +43,12 @@
     --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
     /* custom css */
     --ifm-navbar-background-color: #242526;
-    --ifm-footer-background-color: #303846;
+    --ifm-footer-background-color: #303846; /* not recognised in production build */
     --ifm-link-color: #c2b225;
+}
+
+[data-theme='dark'] footer {
+    background-color: #303846;
 }
 
 

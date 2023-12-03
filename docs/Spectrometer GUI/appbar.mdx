@@ -5,14 +5,31 @@ authors:
     name: Vignesh Venkatasubramanian Vaidyanathan
 ---
 
-import SpectrometerApp from '../../src/components/examples/spectrometer/App' 
-
+import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
+import BrowserOnly from '@docusaurus/BrowserOnly';
+import { FailedSSRMessage, ScrollToTop } from '@site/src/components/helpers'
 
 One can start off by writing a device search text input embedded in an app bar: 
 
 {/* somehow the live feature is simply not good enough or always has bugs, so for now the component is re-written and rendered within MDX */}
+export const BrowserSpectrometerApp = () => {
+    return (
+        <div>
+            {ExecutionEnvironment.canUseDOM? 
+                <BrowserOnly>
+                    {() => {
+                        const SpectrometerApp = require('@site/src/examples/hololinked-spectrometer-gui/src/documentation/app-bar').SpectrometerApp
+                        return <SpectrometerApp />
+                    }} 
+                </BrowserOnly> : 
+                <FailedSSRMessage />
+            }
+        </div>
+    )
+}
+
 Expected Output:
-<SpectrometerApp />
+<BrowserSpectrometerApp />
 
 There may be many instances of the device server running for different spectrometers (of same kind), therefore we show the type of device we search, 
 the user enters the absolute URL to the device & presses the search button. 
@@ -100,12 +117,11 @@ We pass both the initial dummy value `unknownDevice` and the logic to update the
 `DeviceContext.Provider` logic. The dummy value is used to indicate that a valid device has not been contacted yet. 
 Within the device search bar, we add the logic to search the device now:
 
-
-```tsx {9,44-46,48} showLineNumbers title='/src/App.tsx'
+```tsx {9,43-45,47} showLineNumbers 
 import axios from 'axios';
 // ...
 // function App() {
-//    ... }
+// ... 
 
 export const DeviceSearchBar = () => {    
     const [deviceURL, setDeviceURL] = useState<string>('https://localhost:8083/spectrometer/ocean-optics/USB2000-plus') 
@@ -139,7 +155,6 @@ export const DeviceSearchBar = () => {
     return(
         <AppBar color="inherit" sx={{ pt : 0.5 }}>
             {/* padding top for TextField label to not be covered by browser search bar */}
-            <Toolbar variant="dense"> 
                 {/* ... */}
                 <TextField 
                     size="small" 
@@ -152,17 +167,18 @@ export const DeviceSearchBar = () => {
                 <IconButton onClick={loadDevice}>
                     <SearchIcon />
                 </IconButton>
-            </Toolbar>
         </AppBar>
     )
 }
 
-export default App
-```
 
+export default App
+
+```
+ 
 In short, we will provide a default device URL using the `deviceURL` variable, which will be changed by the `<TextField onChange...>` event. 
 The `loadDevice` function is called by the search icon. It tries to locate the spectrometer and read its state.  When successful,
 the state & the URL is updated in the context. When not successful, we set the `error` flag to true, which will show red colour around the 
 `<TextField />`. The `setDevice` and `setDeviceFound` is called at outer level due to react hooks not suitable for 
 conditional statements. Currenly, `hololinked` operates with an insecure CORS policy ('*' - all are allowed), if you have a suitable spectrometer & its 
-RemoteObject accessible, you could already try the app bar functionality from the example output at the top of the page. 
+RemoteObject accessible, you could already try the app bar functionality from the example output at the top of the page <ScrollToTop />. 

@@ -5,7 +5,6 @@ authors:
     name: Vignesh Venkatasubramanian Vaidyanathan
 ---
 
-
 import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
 import BrowserOnly from '@docusaurus/BrowserOnly';
 import Tabs from '@theme/Tabs';
@@ -20,7 +19,7 @@ export function BrowserControlApp() {
             {ExecutionEnvironment.canUseDOM? 
                 <BrowserOnly>
                     {() => {
-                        const ControlApp = require('@site/src/components/examples/spectrometer/documentation/control-bar').ControlApp
+                        const ControlApp = require('@site/src/examples/hololinked-spectrometer-gui/src/documentation/control-bar').ControlApp
                         return <ControlApp />
                     }} 
                 </BrowserOnly> : 
@@ -193,10 +192,146 @@ The button can be tried now <ScrollToTop/>.
 {/* -------- */}
 <TabItem value="acquisition" label="Acquisition">
 Similar to connection button, we use a state machine to enable and disable acquisition. 
+
+```tsx showLineNumbers {4,8,23,26,30-31,37-38} title='/src/core/device.tsx'
+const AcquisitionButtons = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    const { endpoint, disabled } = useContext(FSMContext).acquisition
+    
+    const toggleAcquisition = useCallback(async() => {
+        await axios({
+            url : endpoint, 
+            baseURL : device.URL,
+            method : 'post',
+        }).then((response) => {
+            setDevice({
+                ...device, 
+                state : response.data.state[device.instanceName]
+            })
+        }).catch((error : any) => {
+            console.log(error)
+        })
+    }, [device, endpoint])
+    
+    return (
+        <Stack direction='row'>
+            <ButtonGroup disabled={disabled}>
+                <Button disabled>
+                    Acquisition :
+                    {/* Not a real button, written as button only for correct padding & borders */} 
+                </Button>
+                <Button 
+                    variant='contained' size='large' color='secondary'
+                    disabled={device.state !== 'MEASURING'}    
+                    onClick={toggleAcquisition}
+                >
+                    Start
+                </Button>
+                <Button 
+                    variant='contained' size='large' color='secondary'
+                    disabled={device.state === 'MEASURING'}
+                    onClick={toggleAcquisition}
+                >
+                    Stop
+                </Button>
+            </ButtonGroup>
+        </Stack>
+    )
+}
+```
+where acquisition field in FSM context is updated as follows:
+
+```tsx showLineNumbers {6-8,19-21,28-31} title='/src/core/props.tsx'
+export const FSMProps = {
+    ON : { 
+        connection : {
+            ...
+        },
+        acquisition : {
+            disabled : false
+        }
+    },
+    DISCONNECTED : {
+        connection : {
+            ...
+        }
+    },
+    MEASURING : {
+        connection : {
+            ...
+        },
+        acquisition : {
+            disabled : false, 
+            endpoint : '/acquisition/stop'
+        }
+    },
+    DEFAULT : {
+        connection : {
+            ...
+        },
+        acquisition : {
+            disabled : true,
+            endpoint : '/acquisition/start'
+        }
+    }
+}
+```
+Back to top : <ScrollToTop/>
+
 </TabItem>
 {/* -------- */}
 <TabItem value="state-&-reset-fault" label="State & Reset Fault">
-    This is a banana 🍌
+For the state label, we will simply read the `DeviceContext` value 
+
+```tsx showLineNumbers title='/src/core/device.tsx'
+const CurrentState = () => {
+
+    const [device, _] = useContext(DeviceContext) as DeviceContextType
+   
+    return (
+        <Typography variant='button'>
+            State : {device.state}
+        </Typography>
+    )
+}
+```
+The reset-fault button should become active when the device is in fault state. Instead of using `FSMProps`, 
+we will directly update this in the component. 
+
+```tsx showLineNumbers title='/src/core/device.tsx'
+const ResetFaultButton = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    
+    const resetFault = useCallback(async() => {
+        await axios({
+            url : '/fault/reset', 
+            baseURL : device.URL,
+            method : 'post',
+        }).then((response) => {
+            setDevice({
+                ...device, 
+                state : response.data.state[device.instanceName]})
+        }).catch((error : any) => {
+            console.log(error)
+        })
+    }, [device])
+
+    return (
+        <Button 
+            variant='contained' 
+            size='large'
+            onClick={resetFault}
+            disabled={device.state !== 'FAULT'}
+        >
+            Reset Fault
+        </Button>
+    )
+}
+```
+
+Back to top : <ScrollToTop/>
 </TabItem>
 {/* -------- */}
 </Tabs>

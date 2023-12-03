@@ -11,6 +11,8 @@ Some useful colors - dont remove
     "#9EE493", "#6DA34D", "#88D18A"
 */
 
+let today = new Date()
+
 const config: Config = {
     title: 'hololinked',
     tagline: 'pythonic data-acquisition & instrument-control on network',
@@ -122,7 +124,7 @@ const config: Config = {
                 //     ],
                 // },
             ],
-            copyright: `Copyright © ${new Date().getFullYear()} Vignesh Venkatasubramanian Vaidyanathan. Built with Docusaurus.`,
+            copyright: `Copyright © ${today.getFullYear()} Vignesh Venkatasubramanian Vaidyanathan. Built with Docusaurus. Latest : ${today.toLocaleDateString()} - ${today.toLocaleTimeString().toUpperCase()}`,
         },
         prism: {
             theme: prismThemes.jettwaveLight,

@@ -22,7 +22,19 @@ const sidebars : SidebarsConfig = {
                     collapsed: true,
                     items: [
                         'Spectrometer GUI/control-bar',
-                        'Spectrometer GUI/spectrum-graph'
+                        {
+                            type: 'category',
+                            label: 'Graph Display',
+                            link: {
+                                type: 'doc',
+                                id: 'Spectrometer GUI/spectrum-graph'
+                            },
+                            collapsed: true,
+                            items: [
+                                'Spectrometer GUI/spectrum-graph-controls'
+                            ]
+                        },
+                        'Spectrometer GUI/settings'
                     ]
                 }
             ],

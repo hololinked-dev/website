@@ -1,6 +1,7 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import { LiveExamples } from './src/components/navbar-custom-components';
 
 
 prismThemes.jettwaveLight.plain.backgroundColor = "#f0f4c3" 
@@ -69,65 +70,38 @@ const config: Config = {
             // },
             items: [
                 { 
-                    to: '/doc', 
-                    label: 'Blog', 
+                    label: 'Client Examples', 
                     position: 'left',
                     type: 'docSidebar',
-                    sidebarId: 'blogAsDocSidebar',
+                    sidebarId: 'examplesAsDocSidebar',
                 },
+                {
+                    to: '/blog',
+                    label: 'Blog',
+                    position: 'left'
+                },
+                {
+                    to : '/contact',
+                    label: 'Contact',
+                    position: 'left',
+                },
+                // {
+                //     type : 'custom-liveExamplesToggle',
+                //     position : 'right'
+                // },
                 {
                     href: 'https://github.com/VigneshVSV/hololinked',
                     label: 'GitHub',
                     position: 'right',
-                },
+                }
             ],
         },
         footer: {
-            links: [
-                // {
-                //     title: 'Docs',
-                //     items: [
-                //         {
-                //             label: 'Tutorial',
-                //             to: '/docs/intro',
-                //         },
-                //     ],
-                // },
-                // {
-                //     title: 'Community',
-                //     items: [
-                //         {
-                //             label: 'Stack Overflow',
-                //             href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-                //         },
-                //         {
-                //             label: 'Discord',
-                //             href: 'https://discordapp.com/invite/docusaurus',
-                //         },
-                //         {
-                //             label: 'Twitter',
-                //             href: 'https://twitter.com/docusaurus',
-                //         },
-                //     ],
-                // },
-                // {
-                //     title: 'More',
-                //     items: [
-                //         {
-                //             label: 'contact',
-                //             to: '/blog',
-                //         },
-                //         // {
-                //         //     label: 'GitHub',
-                //         //     href: 'https://github.com/VigneshVSV/hololinked',
-                //         // },
-                //     ],
-                // },
-            ],
-            copyright: `Copyright © ${today.getFullYear()} Vignesh Venkatasubramanian Vaidyanathan. Built with Docusaurus. Latest : ${today.toLocaleDateString()} - ${today.toLocaleTimeString().toUpperCase()}`,
+            copyright: `Copyright © ${today.getFullYear()} Vignesh Venkatasubramanian Vaidyanathan. Built with Docusaurus. Latest : \ 
+                    ${today.toLocaleDateString()} - ${today.toLocaleTimeString().toUpperCase()}`,
         },
         prism: {
-            theme: prismThemes.jettwaveLight,
+            theme: prismThemes.vsLight,
             darkTheme: prismThemes.vsDark,
         },
     } satisfies Preset.ThemeConfig

@@ -1,0 +1,448 @@
+---
+slug: mobx-render-engine
+title: mobx render engine
+authors: vignesh
+tags: [mobx, react]
+---
+import Link from '@docusaurus/Link';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+mobx-render-enginer is a JSON driven react component renderer based on <Link to="https://mobx.js.org/README.html">`MobX`</Link>. 
+I originally created this for writing an object oriented specification of react components in python, & converting this 
+python code to JSON to render them in React. MobX was chosen as the state manager for reactively updating the state 
+(rather than 'selectively', as done with some other libraries). This is suitable for writing dashboards for data-acquisition 
+applications because such dashboards are data-intensive and require decent performance from the browser. <br/>
+As with my other libraries, its not fully functional, however as an example of converting python to React, under 
+<Link to="https://github.com/VigneshVSV/hololinked/tree/main/hololinked/webdashboard">`hololinked.webdashboard`</Link> namespace, 
+one can find certain components defined like <Link to="https://github.com/react-grid-layout/react-grid-layout">react-grid-layout</Link>, 
+MUI components from <Link to="https://mui.com/">React MUI</Link> like Button, TextField etc.    
+Consider the `<GraphDisplay />` component which I posted the code <Link to="https://hololinked.dev/docs/Spectrometer%20GUI/spectrometer-gui-in-reactjs-layout-spectrum-graph">here</Link>.
+To write this in python, one can do the following:
+
+<Tabs>
+<TabItem value="grid" label="Grid">
+Writing a react grid layout in python for adding components to grid:
+```python showLineNumbers title='react app & grid'
+from hololinked.webdashboard import ReactApp, Page, ReactGridLayout
+
+class SpectrometerGUI(ReactApp):
+
+    def __init__(self, id : str, deviceInstanceName : str,  
+                serverAddress : str, **params):
+        super().__init__(**params)
+        self.deviceInstanceName = deviceInstanceName
+        self.serverAddress = serverAddress
+        self.initMainPageAndGrid()
+
+    def initMainPageAndGrid(self):
+        self.mainPage = Page(id = "main-page")
+        self.addComponent(self.mainPage)
+
+        self.mainPageGrid = ReactGridLayout(
+            id="main-page-grid",
+            width=2000,
+            cols=400, 
+            # makes it very fluid
+            rowHeight=1,
+            preventCollision=True
+        )
+        self.mainPage.addComponent(self.mainPageGrid)
+```
+
+</TabItem>
+<TabItem value="connect" label="Connect button">
+A MUI button can look like the following and can be added as a child to the grid:
+```python showLineNumbers title='connect button'
+from hololinked.webdashboard import ReactApp, Page, ReactGridLayout, dataGrid
+from hololinked.webdashboard.components import Button
+
+class SpectrometerGUI(ReactApp):
+    # previous code
+    
+    def initAcquisitionControls(self):
+        self.grid.addComponent(Button(
+            fullWidth = True, 
+            variant = 'contained',
+            id = "connect-button",
+            dataGrid = dataGrid(
+                x = 5,
+                y = 5, 
+                w = 35,
+                h = 5
+            ),
+            size="medium",
+            children="Connect",
+        ))
+        # onClick, state machine etc. will be discussed later
+
+```
+
+</TabItem>
+<TabItem value="acquisition" label="Acquisition Toggle">
+
+```python showLineNumbers title="acquisition buttons"
+from hololinked.webdashboard.components import Button, Stack
+
+class SpectrometerGUI(ReactApp):
+    # previous code
+    
+    def initAcquisitionControls(self):
+        # previous code 
+        self.startAcquisitionButton = Button(
+            id='spectrometer-start-acquisition',
+            children='Start',
+            variant='outlined',
+            sx=dict(
+                borderTopRightRadius=0,
+                borderBottomRightRadius=0,
+            )
+        )
+        
+        self.stopAcquisitionButton = Button(
+            id='spectrometer-stop-acquisition',
+            children='Stop',
+            variant='outlined',
+            sx=dict(
+                borderTopLeftRadius=0,
+                borderBottomLeftRadius=0,
+            )
+        )
+     
+        self.acquisitionController = Stack(
+            id='spectrometer-acquisition-controller',
+            direction="row",
+            children=[
+                self.startAcquisitionButton,
+                self.stopAcquisitionButton
+            ],
+            dataGrid=dataGrid(
+                x=40,
+                y=5,
+                w=40,
+                h=5
+            )
+        )
+        # onClick, state machine etc. will be discussed later
+        self.grid.addComponent(self.acquisitionController)
+
+```
+</TabItem>
+<TabItem value="graph" label="Spectrum Graph">
+
+```python showLineNumbers title='spectrum graph'
+from hololinked.webdashboard.components import PlotlyFigure 
+import plotly.graph_objects as go
+
+class SpectrometerGUI(ReactApp):
+    # previous code
+
+     def initSpectrumGraph(self):
+        spectrumPlot = go.Figure(
+            data = [
+                go.Scatter(
+                    mode='lines',
+                    name='Spectrum',            
+                )],
+            layout = go.Layout(
+                autosize=True,
+                width=800, 
+                height=800 * (9/16),
+                title="Spectrum",
+                xaxis=dict(title="Wavelength (nm)" ),
+                yaxis=dict(title="Intensity (Arbitrary Units)" ), 
+                # grid  = dict( columns = 10, rows = 10)           
+            )      
+        )
+
+        self.spectrumPlotFigure = PlotlyFigure(
+            id=self.deviceInstanceName + "-spectrum-plot",
+            plot=spectrumPlot.to_json(),
+            dataGrid=dataGrid(
+                x=10,
+                y=10, 
+                w=160,
+                isDraggable=True
+            )
+        )
+        self.grid.addComponent(self.spectrumPlotFigure)
+
+```
+</TabItem>
+<TabItem value='create-json' label='JSON'>
+
+```python showLineNumbers title='creating JSON from the defined components'
+S = SpectrometerGUI()
+
+Server = HTTPServer(port=8085)
+
+@Server.get("/pages/sample")
+def return_sample_page():
+    return D.json()
+
+Server.start()
+```
+</TabItem>
+</Tabs>
+
+To render this in react, mobx-render-engine defines the following logic (not necessarily in order):
+
+<h4>1. define components and read state from MobX</h4> 
+Each component has its own state implemented in MobX from which the props are read while rendering. For example, a 
+button component is implemented as follows:
+
+```tsx showLineNumbers title='mui button'
+import Button from '@mui/material/Button';
+import { observer } from 'mobx-react-lite';
+
+const ContextfulMUIButton = observer((state) => {
+
+    const { classes, color, component, disabled, disableElevation, ... endIcon, fullWidth, 
+			href, size, startIcon, variant, centerRipple, ... , onClick } = state.computedProps 
+
+    return (
+        <Button 	
+            classes={classes}
+            color={color}
+            ...
+            disabled={disabled}
+            disableElevation={disableElevation}
+            disableRipple={disableRipple}
+            ...
+            fullWidth={fullWidth}
+            variant={variant}
+            ...
+            onClick={onClick}
+        >
+            {... children logic ... }
+        </Button>
+    )
+})
+```
+To implement these components is the duty of the developer who provides the components to the python user. The components can be as granular (like a p-tag) or as composite as necessary
+and should be purpose-driven - do one or a few tasks correctly/accurately instead of trying to accomplish a blatant translation of python (or JSON) to React/HTML. 
+For example, since I wish to provide the python user with buttons, text field 
+, graph etc. for data acquisition applications, I have implemented some of them. Some examples are hosted in <Link>MUI-mobx-render-engine</Link> & <Link>hololinked-dashboard-components</Link>.
+
+<h4>2. store all component states in a map</h4> 
+The state of all components is stored in a large map with the html-id being the key and a MobX state container being the value. The MobX state container is
+a class that has `makeObservable` defined, and inferring from the example (ContextfulMUIButton) above - the `computedProps` computed property. This state is stored within the `RenderEngine` class which performs the 
+rendering. `RenderEngine.componentStateMap` has the following type:
+```tsx showLineNumbers
+ type ComponentStateMap = {
+    [key : string] : ComponentState
+}
+```
+The rendering can be triggered as follows: 
+```tsx showLineNumbers title='using the renderer'
+import RenderEngine from 'mobx-render-engine';
+
+const App = () => {
+
+    const renderer = useState<RenderEngine>(new RenderEngine())
+    const [rendererReady, setRendererReady] = useState<boolean>(false)
+    
+    useEffect(() => {
+        /* logic to fetch a JSON specifiction from somewhere and populate the componentStateMap */
+        fetchComponents = async() => {
+            let response = await axios.get("my.gui.server:8085/pages/sample") 
+            /* logic to prepare renderer based on response yet to be written */
+            setRendererReady(response.status===200)
+            /* say fetch is successful*/
+        }
+        fetchComponents()
+    }, [])
+
+    return (
+        <>
+            {rendererReady? renderer.Component('__App__') : <SomeLoadingComponent />}
+        </> 
+    )
+}
+
+```
+
+
+<h4>3. renderer iterates the component state map and compare with available components</h4>
+The renderer knows to render a component only when the the component was registered after instantiation of `RenderEngine` and 
+before triggering the renderer. The html-key `__App__` (`ReactApp` class in python-side) is reserved for triggering the rendering which will render all the components.
+The `registerComponent()` method should be called with a unique component name and the component itself. For example, the ContextfulMUIButton 
+created above can be registered like the following:    
+
+```tsx showLineNumbers {11} title="registering components to renderer"
+import { RenderEngine } from "mobx-render-engine";
+
+import { ContextfulMUIButton } from "./components/Button";
+import { ContextfulMUITextField } from "./components/TextField";
+import { ContextfulMUIBox } from "./components/Box";
+import { ContextfulMUIDivider } from "./components/Divider";
+import { ContextfulMUIStack } from "./components/Stack";
+
+export function prepareRenderers(renderers : RenderEngine[]) {
+    for (let renderer of renderers){
+        renderer.registerComponent("ContextfulMUIButton", ContextfulMUIButton)
+        renderer.registerComponent("ContextfulMUIStack", ContextfulMUIStack)
+        ...
+        renderer.registerComponent("ContextfulMUItextField", ContextfulMUITextField)
+    }
+}
+```
+
+<h4>4. The supplied JSON should contain the component name, html-id & props (among others)</h4>
+
+Since we register the component based on name, the JSON provided must contain must have the following fields:
+
+```JSON showLineNumbers title="ContextfulMUIButton example JSON" 
+{
+    "componentName": "MobXUIButton",
+    "id": "some-unique-html-id",
+    "props": {
+            "sx": null,
+            "centerRipple": false,
+            "disabled": false,
+            "disableRipple": false,
+            "disableTouchRipple": false,
+            "focusRipple": false,
+            "focusVisibleClassName": null,
+            ...
+            "color": "primary",
+            "disableElevation": false,
+            "endIcon": null,
+            "fullWidth": true,
+            "size": "medium",
+            "startIcon": null,
+            "variant": "contained",
+            "onClick": {
+                ... will be discussed in actions ...
+            }
+    },
+    "children": [
+        "Connect"
+    ]
+}
+```
+
+In `hololinked.webdashboard`, this is generated in python using descriptor protocol (based on <Link to="https://param.holoviz.org/">`param`</Link>) to provide a validated server-side 
+JSON. 
+
+<h4>5. props & mobx-state can be changed with predefined actions & state machine</h4>
+Importantly, the dashboard comes alive only when the props are changed. Similar to how `MobX` updates observables with actions, mobx-render-engine
+allows definitions of global actions which can change the state of any component. When the state of a specific component is changed, the computedProps method is triggered by MobX automatically 
+for the said component.  
+Further, a state-machine is implemented which applies predefined props based on a state-machine state (different from MobX use of word 'state' in previous sentence).  
+As an example, consider the `onClick` callback for the MobXButton. Currently, I have a implemented a pre-defined axios request object which can be specified 
+also with a JSON. 
+
+<Tabs>
+<TabItem value="python" label="python">
+
+```python showLineNumbers title='connect button'
+from hololinked.webdashboard import RemoteFSM
+from hololinked.webdashboard.actions import makeRequest
+
+    def initAcquisitionControls(self):
+        self.grid.addComponent(Button(
+            fullWidth = True, 
+            variant = 'contained',
+            id = "connect-button",
+            dataGrid = dataGrid(
+                x = 55,
+                y = 5, 
+                w = 35,
+                h = 5
+            ),
+            size ="medium",
+            stateMachine = RemoteFSM(
+                subscription = self.deviceInstanceName,
+                defaultState = 'DISCONNECTED',
+                DISCONNECTED = dict (
+                    children = "Connect",
+                    onClick = makeRequest(
+                        url = f"{self.serverAddress}/{self.deviceInstanceName}/connect",
+                        method = "post", 
+                    ),
+                ),
+                ON = dict (
+                    children = "Disconnect",
+                    onClick = makeRequest( 
+                        url = f"{self.serverAddress}/{self.deviceInstanceName}/disconnect",
+                        method = "post", 
+                    )
+                )
+            )
+        ))
+```
+The RemoteFSM is a contruct of the hololinked data-acquisition package where the FSM is defined somewhere within the server and a state 
+is returned on each request. mobx-render-engine automatically applies the new state from the response JSON of the request. Nevertheless, 
+a pure client side state machine is also possible and the props will be applied automatically by MobX when a set state global action 
+is called. 
+</TabItem>
+<TabItem value="json" label="generated JSON">
+
+```JSON showLineNumbers title="generated JSON by hololinked.webdashboard"
+{
+    "connect-button" : {
+        "props": {
+            "sx": null,
+            "centerRipple": false,
+            "disabled": false,
+            "disableRipple": false,
+            "disableTouchRipple": false,
+            "focusRipple": false,
+            "focusVisibleClassName": null,
+            "LinkComponent": "a",
+            "TouchRippleProps": null,
+            "touchRippleRef": null,
+            "onFocusVisible": null,
+            "action": null,
+            "color": "primary",
+            "disableElevation": false,
+            "endIcon": null,
+            "fullWidth": true,
+            "size": "medium",
+            "startIcon": null,
+            "variant": "contained",
+        },
+        "componentName": "ContextfulMUIButton",
+        "id": "connect-button",
+        "tree": "__App__/main-page/main-page-grid/connect-button",
+        "stateMachine": {
+            "type": "RemoteFSM",
+            "defaultState": "DISCONNECTED",
+            "subscription": "serial-communication-system-util",
+            "states": {
+            "DISCONNECTED": {
+                "children": [
+                    "Connect"
+                ],
+                "onClick": {
+                    "op1": "actionid_2398caf5-14db-4125-b98d-e520ca732bcf",
+                    "op1interpretation": "action",
+                    "op1dtype": "action"
+                }
+            },
+            "ON": {
+                "children": [
+                    "Disconnect"
+                ],
+                "onClick": {
+                    "op1": "actionid_a4ca3266-f1c8-4077-bbc7-d6c2739f67f5",
+                    "op1interpretation": "action",
+                    "op1dtype": "action"
+                }
+            }
+        }}
+    }
+}
+```
+
+</TabItem>
+<TabItem value="js" label="ReactJS"></TabItem>
+</Tabs>
+
+There are many other actions currently defined, such as EventSource, repeated requests at intervals, set state machine state, store component value (like textfield value) etc. 
+These actions are specified as JSON in the python side and are resolved into functions. Again, to implement these actions is the duty of the developer who provides the python components to the 
+python user. 
+
+<h4>6. the results of actions can be assigned to props</h4>
+Consider the axios request object above, since the request generates a response which can be applied onto other props. For example, 

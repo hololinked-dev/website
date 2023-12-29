@@ -1,5 +1,5 @@
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import { Box, Stack, Typography, Grid } from '@mui/material';
+import { Box, Stack, Typography, Grid, AppBar, Toolbar } from '@mui/material';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 
@@ -8,10 +8,16 @@ export default function Home(): JSX.Element {
     const { siteConfig } = useDocusaurusContext();
     
     return (
-        <Layout
-            title={`Hello from ${siteConfig.title}`}
-            description="hololinked offical website"
-        >
+        <>  
+            {/* <AppBar>
+                <Toolbar>
+                    <Typography>{siteConfig.title}</Typography>
+                </Toolbar>
+            </AppBar> */}
+            <Layout
+                title={siteConfig.title}
+                description="hololinked - data acquisition in HTTP"
+            >
             <Grid 
                 container
                 sx={{ 
@@ -23,7 +29,7 @@ export default function Home(): JSX.Element {
                     <Stack>
                         <h1>Welcome to hololinked's website</h1>
                         <Typography>
-                            Use hololinked for data-acquisition and control applications through your local/domain network while python being your language of choice. <br />
+                            hololinked is (supposed to be) a versatile and pythonic tool for building control and data acquisition software systems. <br />
                             Benefit from HTTP support to write browser based GUI's and the modern features & elegant frameworks web development offers. 
                         </Typography>
                         <Link to='https://hololinked.readthedocs.io'>
@@ -38,7 +44,8 @@ export default function Home(): JSX.Element {
                     </Stack>
                 </Grid>
             </Grid>
-        </Layout>
+            </Layout>
+        </>
     );
 }
 

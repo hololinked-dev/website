@@ -1,7 +1,7 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars : SidebarsConfig = {
-    blogAsDocSidebar: [
+    examplesAsDocSidebar: [
         {
             type: 'category',
             label: 'Spectrometer GUI',

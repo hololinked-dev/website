@@ -9,15 +9,16 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 mobx-render-enginer is a JSON driven react component renderer based on <Link to="https://mobx.js.org/README.html">`MobX`</Link>. 
-I originally created this for writing an object oriented specification of react components in python, & converting this 
-python code to JSON to render them in React. MobX was chosen as the state manager for reactively updating the state 
+I originally created this for writing an object oriented specification of react components in python & converting this 
+python code to JSON to render them in React. MobX was chosen as the state manager for reactively updating the state of the components 
 (rather than 'selectively', as done with some other libraries). This is suitable for writing dashboards for data-acquisition 
 applications because such dashboards are data-intensive and require decent performance from the browser. <br/>
 As with my other libraries, its not fully functional, however as an example of converting python to React, under 
 <Link to="https://github.com/VigneshVSV/hololinked/tree/main/hololinked/webdashboard">`hololinked.webdashboard`</Link> namespace, 
 one can find certain components defined like <Link to="https://github.com/react-grid-layout/react-grid-layout">react-grid-layout</Link>, 
 MUI components from <Link to="https://mui.com/">React MUI</Link> like Button, TextField etc.    
-Consider the `<GraphDisplay />` component which I posted the code <Link to="https://hololinked.dev/docs/Spectrometer%20GUI/spectrometer-gui-in-reactjs-layout-spectrum-graph">here</Link>.
+Consider the `<GraphDisplay />` component which I posted the code 
+<Link to="https://hololinked.dev/docs/Spectrometer%20GUI/spectrometer-gui-in-reactjs-layout-spectrum-graph">here</Link>.
 To write this in python, one can do the following:
 
 <Tabs>
@@ -219,10 +220,15 @@ const ContextfulMUIButton = observer((state) => {
     )
 })
 ```
-To implement these components is the duty of the developer who provides the components to the python user. The components can be as granular (like a p-tag) or as composite as necessary
-and should be purpose-driven - do one or a few tasks correctly/accurately instead of trying to accomplish a blatant translation of python (or JSON) to React/HTML. 
-For example, since I wish to provide the python user with buttons, text field 
-, graph etc. for data acquisition applications, I have implemented some of them. Some examples are hosted in <Link>MUI-mobx-render-engine</Link> & <Link>hololinked-dashboard-components</Link>.
+To implement these components is the duty of the developer who provides the components to the python user. The components
+can be as granular (like a p-tag) or as composite as necessary and should be purpose-driven - do one or a few tasks 
+correctly/accurately instead of trying to accomplish a blatant translation of python (or JSON) to React/HTML. 
+For example, since I wish to provide the python user with a button, one can see there is no useState, useEffect etc. 
+(which are react constructs) since the purpose of this button will be to fire an onClick callback (which will be a HTTP 
+request and will be discussed later). In this way, it is possible to specify this button as a python object without 
+having to ask the python developer to learn what is useState and useEffect (if it were so, it is better to simply learn React). 
+Some examples are hosted in <Link to="https://github.com/VigneshVSV/MUI-mobx-react-render-engine">MUI-mobx-render-engine</Link> 
+and <Link to="https://github.com/VigneshVSV/hololinked-dashboard-components.git">hololinked-dashboard-components</Link>.
 
 <h4>2. store all component states in a map</h4> 
 The state of all components is stored in a large map with the html-id being the key and a MobX state container being the value. The MobX state container is
@@ -265,7 +271,7 @@ const App = () => {
 
 <h4>3. renderer iterates the component state map and compare with available components</h4>
 The renderer knows to render a component only when the the component was registered after instantiation of `RenderEngine` and 
-before triggering the renderer. The html-key `__App__` (`ReactApp` class in python-side) is reserved for triggering the rendering which will render all the components.
+before triggering the renderer. The html-id `__App__` (`ReactApp` class in python-side) is reserved for triggering the rendering which will render all the components.
 The `registerComponent()` method should be called with a unique component name and the component itself. For example, the ContextfulMUIButton 
 created above can be registered like the following:    
 
@@ -294,51 +300,97 @@ Since we register the component based on name, the JSON provided must contain mu
 
 ```JSON showLineNumbers title="ContextfulMUIButton example JSON" 
 {
-    "componentName": "MobXUIButton",
-    "id": "some-unique-html-id",
-    "props": {
-            "sx": null,
-            "centerRipple": false,
-            "disabled": false,
-            "disableRipple": false,
-            "disableTouchRipple": false,
-            "focusRipple": false,
-            "focusVisibleClassName": null,
-            ...
-            "color": "primary",
-            "disableElevation": false,
-            "endIcon": null,
-            "fullWidth": true,
-            "size": "medium",
-            "startIcon": null,
-            "variant": "contained",
-            "onClick": {
-                ... will be discussed in actions ...
-            }
-    },
-    "children": [
-        "Connect"
-    ]
-}
+    "some-unique-html-id" : {
+        "componentName": "ContextfulMUIButton",
+        "id": "some-unique-html-id",
+        "props": {
+                "sx": null,
+                "centerRipple": false,
+                "disabled": false,
+                "disableRipple": false,
+                "disableTouchRipple": false,
+                "focusRipple": false,
+                "focusVisibleClassName": null,
+                ...
+                "color": "primary",
+                "disableElevation": false,
+                "endIcon": null,
+                "fullWidth": true,
+                "size": "medium",
+                "startIcon": null,
+                "variant": "contained",
+                "onClick": {
+                    ... will be discussed in actions ...
+                }
+        },
+        "children": [
+            "Connect"
+        ]
+}}
 ```
 
 In `hololinked.webdashboard`, this is generated in python using descriptor protocol (based on <Link to="https://param.holoviz.org/">`param`</Link>) to provide a validated server-side 
-JSON. 
+JSON. The RenderEngine accepts this JSON and composes the MobX observable class `ComponentState`, from where props (`computedProps`), children (called `computedChildren`)
+are retrived. <br/>
+As a side note, in reality the JSON is accepted by a class named `StateManager` which creates the `ComponentState` map and passes it on to the render engine which is its own attribute
+(`StateManager.renderer`). Further, all the children are specified using html-ids or plain JSON data type to render it directly. In case of the button, we can specify the text 
+as a child of the button which will be rendered directly as text. One could also use a text prop instead of children prop to render button text in order to not confuse the python developer 
+what 'children' in React means.    
+The JSON is also has a flat heirarchy - component's JSON are never nested inside other component's JSON. For example, if one wants to render an icon within the button (like a send icon),
+the JSON would look as follows:
+```JSON showLineNumbers title="JSON for rendering react children"
+{
+    "some-unique-parent-html-id" : {
+        props : {...}
+        "id" : "some-unique-parent-html-id",
+        "componentName" : "ContextfulMUIButton",
+        "children" : ["Connect", "connect-symbol-mui-icon-unique-id"]
+    }
+    "connect-symbol-mui-icon-unique-id" : {
+        props : {...}
+        "id" : "connect-symbol-mui-icon-unique-id",
+        "componentName" : "ContextfulMUIIcon",
+        "children" : []
+    }
+}
+``` 
+The `ContextfulMUIButton` button logic would be now:
 
+```tsx showLineNumbers {1,14} title="rendering children with render engine"
+const ContextfulMUIButton = observer((state, renderer) => {
+
+    const { classes, color, component, disabled, disableElevation, ... endIcon, fullWidth, 
+			href, size, startIcon, variant, centerRipple, ... , onClick } = state.computedProps 
+
+    return (
+        <Button 	
+            classes={classes}
+            color={color}
+            ...
+            ...
+            onClick={onClick}
+        >
+            {renderer.Children(state.computedChildren)}}
+        </Button>
+    )
+})
+```
 <h4>5. props & mobx-state can be changed with predefined actions & state machine</h4>
-Importantly, the dashboard comes alive only when the props are changed. Similar to how `MobX` updates observables with actions, mobx-render-engine
-allows definitions of global actions which can change the state of any component. When the state of a specific component is changed, the computedProps method is triggered by MobX automatically 
+Importantly, the dashboard or webpage comes alive only when the props are changed. Similar to how `MobX` updates observables
+with actions, mobx-render-engine allows definitions of global actions which can change the state of any component. 
+When the state of a specific component is changed, the computedProps method is triggered by MobX automatically 
 for the said component.  
-Further, a state-machine is implemented which applies predefined props based on a state-machine state (different from MobX use of word 'state' in previous sentence).  
-As an example, consider the `onClick` callback for the MobXButton. Currently, I have a implemented a pre-defined axios request object which can be specified 
-also with a JSON. 
-
+Further, a state-machine is implemented which applies predefined props based on a state-machine state (different from MobX 
+use of word 'state' in previous sentence). As an example, consider the `onClick` callback for the MobXButton. Currently, 
+I have a implemented a pre-defined axios request object which can be specified also with a JSON.
 <Tabs>
 <TabItem value="python" label="python">
-
-```python showLineNumbers title='connect button'
+```python showLineNumbers {21,28} title='connect button'
 from hololinked.webdashboard import RemoteFSM
 from hololinked.webdashboard.actions import makeRequest
+
+class SpectrometerGUI(ReactApp):
+    # previous code
 
     def initAcquisitionControls(self):
         self.grid.addComponent(Button(
@@ -372,10 +424,13 @@ from hololinked.webdashboard.actions import makeRequest
             )
         ))
 ```
-The RemoteFSM is a contruct of the hololinked data-acquisition package where the FSM is defined somewhere within the server and a state 
-is returned on each request. mobx-render-engine automatically applies the new state from the response JSON of the request. Nevertheless, 
+:::note 
+The `RemoteFSM` is a contruct of the hololinked data-acquisition package where the FSM is defined somewhere within the server 
+and a state is returned on each and every request (just to remain updated on the latest state of the server). The actions of 
+mobx-render-engine automatically applies the new state from the response JSON of the request. Nevertheless, 
 a pure client side state machine is also possible and the props will be applied automatically by MobX when a set state global action 
 is called. 
+:::
 </TabItem>
 <TabItem value="json" label="generated JSON">
 
@@ -392,7 +447,6 @@ is called.
             "focusVisibleClassName": null,
             "LinkComponent": "a",
             "TouchRippleProps": null,
-            "touchRippleRef": null,
             "onFocusVisible": null,
             "action": null,
             "color": "primary",
@@ -409,16 +463,14 @@ is called.
         "stateMachine": {
             "type": "RemoteFSM",
             "defaultState": "DISCONNECTED",
-            "subscription": "serial-communication-system-util",
+            "subscription": "spectrometer/ocean-optics/usb2000+",
             "states": {
             "DISCONNECTED": {
                 "children": [
                     "Connect"
                 ],
                 "onClick": {
-                    "op1": "actionid_2398caf5-14db-4125-b98d-e520ca732bcf",
-                    "op1interpretation": "action",
-                    "op1dtype": "action"
+                   ... a JSON specification ...
                 }
             },
             "ON": {
@@ -426,9 +478,7 @@ is called.
                     "Disconnect"
                 ],
                 "onClick": {
-                    "op1": "actionid_a4ca3266-f1c8-4077-bbc7-d6c2739f67f5",
-                    "op1interpretation": "action",
-                    "op1dtype": "action"
+                   ... a JSON specification ...
                 }
             }
         }}
@@ -437,12 +487,129 @@ is called.
 ```
 
 </TabItem>
-<TabItem value="js" label="ReactJS"></TabItem>
+<TabItem value="js" label="ReactJS">
+The onClick callback is resolved from a JSON to a function during ComponentState creation, 
+before passing on to the renderer (`StateManager.renderer`). The general behaviour of such props like onClick below is 
+an action that changes the MobX state of a certain component (not necessarily its own). 
+```tsx showLineNumbers {1,14} title="resolved onClick callback"
+const ContextfulMUIButton = observer((state, renderer) => {
+
+    const { classes, color, ... , onClick } = state.computedProps 
+
+    return (
+        <Button 	
+            ...
+            ...
+            onClick={onClick}
+        >
+            {renderer.Children(state.computedChildren)}}
+        </Button>
+    )
+})
+```
+</TabItem>
 </Tabs>
 
-There are many other actions currently defined, such as EventSource, repeated requests at intervals, set state machine state, store component value (like textfield value) etc. 
-These actions are specified as JSON in the python side and are resolved into functions. Again, to implement these actions is the duty of the developer who provides the python components to the 
-python user. 
+There are many other actions currently defined, such as EventSource, repeated requests at intervals, set state machine state 
+(frontend-only component state machine), store component value (like textfield value, checkbox/slider value) etc. 
+These actions are specified as JSON in the python side and are resolved into functions. Again, to implement the react side definition 
+of these actions is the duty of the developer who provides the python components to the python user. <br />
+Moreover, if these actions contain JSON data or return JSON data (say a HTTP response) compliant to the JSON schema of component state, 
+they will be automatically applied by mobx-render-engine (no need for separate react state management). 
+The JSON should be return under a field specified under 
 
-<h4>6. the results of actions can be assigned to props</h4>
-Consider the axios request object above, since the request generates a response which can be applied onto other props. For example, 
+```JSON showLineNumbers title="response data schema for automatically updating (any) component state"
+{
+    data : {
+        returnValue : {
+            UIComponents : {
+                "some-existing-component-html-id" : {
+                    "props" : { ... new props here ... },
+                    "children" : {... new children here ...}
+                },
+                "some-other-existing-component-html-id" : {
+                    "props" : { ... new props here ... },
+                    "children" : {... new children here ...}
+                },
+                "a-new-component-html-id" : {
+                    "props" : {... new component props ... }
+                }
+            }
+        }
+    }
+}    
+```
+For example, if the onClick callback of `ContextfulMUIButton` returns a JSON containing new props for existing components or 
+new state for a new component, they will be applied automatically. The existing components will change their props and new 
+components will be rendered. 
+
+<h4>6. the results of actions & the stored value of components can also be assigned to props</h4>
+Very similar to the previous stated, one can also use the result of actions to update props directly. 
+
+```python showLineNumbers title="set props from actions"
+from hololinked.webdashboard.components import Slider, TextField
+
+class MyApp(ReactApp):
+
+    def initComponents(self):
+        self.slider = Slider(
+            ... 
+        )
+
+        self.textField = TextField(
+            id='...',
+            sx=dict(
+                fontSize=self.slider.value
+            )
+        )
+```
+Components that have potential to retain a value (which many of them do, especially input components) always write their 
+new value to a `ComponentOutputMap` (`StateManager.componentOutputMap`) when changed. This value can be accessed by any component 
+and any action using the dot operator in python (specifically .value). This allows for actions like HTTP requests to access 
+component's value for request body, and in general for updating props directly with a new value without needing a server to 
+host the GUI. In my examples, there is a server that provides the JSON from python, however this is only for convenience 
+and is not in anyway related to the working of the mobx-render-engine. The mobx-render-engine can also render from JSON files. <br />For 
+actions to access a component's value, similar logic can be used as follows:
+
+```python showLineNumbers
+from hololinked.webdashboard import makeRequest
+
+class MyApp(ReactApp):
+
+    def initComponents(self):
+        # previous code 
+        self.button = Button(
+            onClick = makeRequest(
+                url = f"{self.serverAddress}/{self.deviceInstanceName}/instructions",
+                method = "post", 
+                data = {
+                    "state" : "RUNNING",
+                    "command" : self.textField.value,
+                    "return_data_size" : self.slider.value # say
+                }
+            )
+            fullWidth = True, 
+            variant = 'contained',
+            id = "send-instruction-button",
+            children = "Send",
+        )
+     
+```
+The data accompanying actions will be deep-updated always before executing the action, in this case a HTTP request. 
+Similar, actions themselves stored their last returned value (like HTTP response or event data) which can be accessed with 
+the dot operator in python and will update the components accessing it when the return value is updated.  
+
+<h4>7. actions are also structured to facilitate JSON resolution</h4>
+Finally, to help resolve the JSON specification of the 'predefined global actions' which change the states of any component, 
+they are structured with following options. Each action must define a
+* `call()` which runs the action 
+* `cancel()` which cancels the action if possible 
+* `cleanup()` which frees the memory and called on component unmount
+
+<h3>FURTHER</h3>
+The repository is hosted at github <Link to="https://github.com/VigneshVSV/mobx-render-engine">here</Link>. One can try 
+it with <Link to="https://github.com/VigneshVSV/hololinked-portal">hololinked-portal</Link> under 'quick-dashboard-view'.
+The JSON can be generated with examples from <Link to="https://github.com/VigneshVSV/mobx-render-engine-python-examples">python examples repository</Link>.
+Unfortunately docusaurus (which created this website) is optimized for server side rendering and I do not know how to mount MobX 
+to make the examples come alive with SSR. mobx-render-engine is meant to be used for apps with client side rendering. 
+

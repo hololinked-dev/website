@@ -1,10 +1,10 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
-import { LiveExamples } from './src/components/navbar-custom-components';
 
 
-prismThemes.jettwaveLight.plain.backgroundColor = "#f0f4c3" 
+
+prismThemes.vsLight.plain.backgroundColor = "#f0f4c3" 
 
 /* 
 Some useful colors - dont remove 
@@ -53,12 +53,11 @@ const config: Config = {
                     editUrl: 'https://github.com/VigneshVSV/hololinked-website/tree/main/blog',
                 },
                 theme: {
-                        customCss: './src/css/custom.css',
+                    customCss: './src/css/custom.css',
                 },
             }   satisfies Preset.Options,
         ],
     ],
-
     themeConfig: {
         // Replace with your project's social card
         // image: 'img/docusaurus-social-card.jpg',
@@ -70,7 +69,22 @@ const config: Config = {
             // },
             items: [
                 { 
-                    label: 'Client Examples', 
+                    type: 'dropdown',
+                    label: 'Docs', 
+                    position: 'left',
+                    items: [
+                        {
+                            label: 'official python documentation',
+                            href: 'https://hololinked.readthedocs.io/en/latest/'
+                        },
+                        {
+                            label: 'mobx-render-engine',
+                            href: 'https://mobx-render-engine.hololinked.dev',
+                        },
+                    ]
+                },
+                { 
+                    label: 'Examples', 
                     position: 'left',
                     type: 'docSidebar',
                     sidebarId: 'examplesAsDocSidebar',
@@ -104,6 +118,7 @@ const config: Config = {
             theme: prismThemes.vsLight,
             darkTheme: prismThemes.vsDark,
         },
+
     } satisfies Preset.ThemeConfig
 };
 

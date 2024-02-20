@@ -39,24 +39,14 @@ const OpenCollectiveTable = () => {
         <table>
             <thead>
                 <tr>
-                    <th>Repository</th>
                     <th>Open Collective Donation Box</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td>hololinked python server-side</td>
                     <td>
-                        <Link to='https://opencollective.com/hololinked-python'>
-                            https://opencollective.com/hololinked-python
-                        </Link>
-                    </td>
-                </tr>
-                <tr>
-                    <td>hololinked react tools</td>
-                    <td>
-                        <Link to='https://opencollective.com/hololinked-react'>
-                            https://opencollective.com/hololinked-react
+                        <Link to='https://opencollective.com/hololinked-dev'>
+                            https://opencollective.com/hololinked-dev
                         </Link>
                     </td>
                 </tr>

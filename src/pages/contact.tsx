@@ -1,16 +1,13 @@
 import { Box, Typography, Stack } from "@mui/material"
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Link from "@docusaurus/Link";
 
 
 export default function ContactInfo() {
-
-    const { siteConfig } = useDocusaurusContext();
-    
+ 
     return (
         <Layout
-            title={siteConfig.title}
+            title="contact"
             description="hololinked offical website"
         >
             <Box sx={{ justifyContent : 'center', display : 'flex', pt : 10 }}>

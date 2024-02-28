@@ -15,8 +15,8 @@ Some useful colors - dont remove
 let today = new Date()
 
 const config: Config = {
-    title: 'hololinked',
-    tagline: 'pythonic data-acquisition & instrument-control on network',
+    title: "hololinked - pythonic SCADA/IoT",
+    tagline: 'pythonic data-acquisition & instrumentation-control on network (or SCADA)',
     // favicon: 'img/favicon.ico',
 
     // Set the production url of your site here
@@ -99,10 +99,6 @@ const config: Config = {
                     label: 'Contact',
                     position: 'left',
                 },
-                // {
-                //     type : 'custom-liveExamplesToggle',
-                //     position : 'right'
-                // },
                 {
                     href: 'https://github.com/VigneshVSV/hololinked',
                     label: 'GitHub',

@@ -1,6 +1,7 @@
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import { JSX } from 'react/jsx-runtime';
 import { Box, Stack, Typography, Grid } from '@mui/material';
 import { OpenInNew } from '@mui/icons-material';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
 
@@ -12,7 +13,7 @@ export default function Home(): JSX.Element {
         <>  
             <Layout
                 title={siteConfig.title}
-                description="data acquisition and remote control in python"
+                description="supervisory control anda data acquisition in python"
             >
                 <Grid 
                     container
@@ -23,7 +24,7 @@ export default function Home(): JSX.Element {
                 >
                     <Grid item xs={12} sm={9} lg={6}>
                         <Stack>
-                            <h1>hololinked - data acquisition and remote control in python</h1>
+                            <h1>hololinked - supervisory control anda data acquisition in python</h1>
                             <Typography>
                                 hololinked is (supposed to be) a versatile and pythonic tool for data acquisition and control software systems. <br />
                                 Benefit from HTTP support to write web interfaces for your instrumentation, along with the modern features & elegant frameworks web development offers. 

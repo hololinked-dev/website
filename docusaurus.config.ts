@@ -112,7 +112,7 @@ const config: Config = {
         },
         footer: {
             copyright: `Copyright © ${today.getFullYear()} Vignesh Venkatasubramanian Vaidyanathan. Built with Docusaurus. Latest : \ 
-                    ${today.toLocaleDateString()} - ${today.toLocaleTimeString().toUpperCase()}`,
+                    ${today.toLocaleDateString()} - ${today.toLocaleTimeString().toUpperCase()} CET`,
         },
         prism: {
             theme: prismThemes.vsLight,

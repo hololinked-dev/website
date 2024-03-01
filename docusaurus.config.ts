@@ -16,7 +16,7 @@ let today = new Date()
 
 const config: Config = {
     title: "hololinked - pythonic SCADA/IoT",
-    tagline: 'pythonic data-acquisition & instrumentation-control on network (or SCADA)',
+    tagline: "Pythonic Supervisory Control and Data Acquisition (SCADA) / Internet of Things (IoT)",
     // favicon: 'img/favicon.ico',
 
     // Set the production url of your site here

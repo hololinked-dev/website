@@ -13,7 +13,7 @@ export default function Home(): JSX.Element {
         <>  
             <Layout
                 title={siteConfig.title}
-                description="Pythonic Supervisory Control and Data Acquisition (SCADA) / Internet of Things (IoT)"
+                description="Pythonic Supervisory Control and Data Acquisition / Internet of Things"
             >
                 <Grid 
                     container
@@ -24,7 +24,7 @@ export default function Home(): JSX.Element {
                 >
                     <Grid item xs={12} sm={9} lg={6}>
                         <Stack>
-                            <h1>hololinked - Pythonic Supervisory Control and Data Acquisition (SCADA) / Internet of Things (IoT)</h1>
+                            <h1>hololinked - Pythonic Supervisory Control and Data Acquisition / Internet of Things</h1>
                             <Typography>
                                 hololinked is (supposed to be) a versatile and pythonic tool for data acquisition and control software systems. <br />
                                 Benefit from HTTP support to write web interfaces for your instrumentation, along with the modern features & elegant frameworks web development offers. 

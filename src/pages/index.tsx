@@ -26,7 +26,7 @@ export default function Home(): JSX.Element {
                         <Stack>
                             <h1>hololinked - Pythonic Supervisory Control and Data Acquisition / Internet of Things</h1>
                             <Typography>
-                                hololinked is (supposed to be) a versatile and pythonic tool for data acquisition and control software systems. <br />
+                                hololinked is (supposed to be) a versatile and pythonic tool for building data acquisition and control software systems. <br />
                                 Benefit from HTTP support to write web interfaces for your instrumentation, along with the modern features & elegant frameworks web development offers. 
                             </Typography>
                             <Link to='https://hololinked.readthedocs.io'>

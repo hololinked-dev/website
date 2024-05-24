@@ -8,10 +8,10 @@ import Link from '@docusaurus/Link';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-mobx-render-enginer is a JSON driven react component renderer based on <Link to="https://mobx.js.org/README.html">`MobX`</Link>. 
+mobx-render-engine is a JSON driven react component renderer based on <Link to="https://mobx.js.org/README.html">`MobX`</Link>. 
 I originally created this for writing an object oriented specification of react components in python & converting this 
-python code to JSON to render them in React. MobX was chosen as the state manager for reactively updating the state of the components 
-(rather than 'selectively', as done with some other libraries). This is suitable for writing dashboards for data-acquisition 
+python code to JSON to render them in React, or have a drag and drop dashboard. MobX was chosen as the state manager for reactively updating 
+the state of the components (rather than 'selectively', as done with some other libraries). This is suitable for writing dashboards for data-acquisition 
 applications because such dashboards are data-intensive and require decent performance from the browser. <br/>
 As with my other libraries, its not fully functional, however as an example of converting python to React, under 
 <Link to="https://github.com/VigneshVSV/hololinked/tree/main/hololinked/webdashboard">`hololinked.webdashboard`</Link> namespace, 
@@ -269,9 +269,9 @@ const App = () => {
 ```
 
 
-<h4>3. renderer iterates the component state map and compare with available components</h4>
-The renderer knows to render a component only when the the component was registered after instantiation of `RenderEngine` and 
-before triggering the renderer. The html-id `__App__` (`ReactApp` class in python-side) is reserved for triggering the rendering which will render all the components.
+<h4>3. A RenderEngine iterates the component state map and compare with available components</h4>
+The renderer (instance of RenderEngine) knows to render a component only when the component was registered after instantiation of `RenderEngine` and 
+before triggering the rendering with the `Children` method. The html-id `__App__` (`ReactApp` class in python-side) is reserved for triggering the rendering which will render all the components.
 The `registerComponent()` method should be called with a unique component name and the component itself. For example, the ContextfulMUIButton 
 created above can be registered like the following:    
 
@@ -296,7 +296,9 @@ export function prepareRenderers(renderers : RenderEngine[]) {
 
 <h4>4. The supplied JSON should contain the component name, html-id & props (among others)</h4>
 
-Since we register the component based on name, the JSON provided must contain must have the following fields:
+A JSON should be provided from an external source to the RenderEngine, for example through a file or a HTTP request to 
+a server fetching JSON created from a different language. Since we register the component based on name, 
+the JSON provided must contain must have the following fields:
 
 ```JSON showLineNumbers title="ContextfulMUIButton example JSON" 
 {
@@ -333,10 +335,10 @@ In `hololinked.webdashboard`, this is generated in python using descriptor proto
 JSON. The RenderEngine accepts this JSON and composes the MobX observable class `ComponentState`, from where props (`computedProps`), children (called `computedChildren`)
 are retrived. <br/>
 As a side note, in reality the JSON is accepted by a class named `StateManager` which creates the `ComponentState` map and passes it on to the render engine which is its own attribute
-(`StateManager.renderer`). Further, all the children are specified using html-ids or plain JSON data type to render it directly. In case of the button, we can specify the text 
+(`StateManager.renderer`). Further, all the children are specified using html-ids. In case of the button, we can specify the text 
 as a child of the button which will be rendered directly as text. One could also use a text prop instead of children prop to render button text in order to not confuse the python developer 
-what 'children' in React means.    
-The JSON is also has a flat heirarchy - component's JSON are never nested inside other component's JSON. For example, if one wants to render an icon within the button (like a send icon),
+what 'children' means in React.    
+The JSON is also has a flat heirarchy - a certain component's JSON are never nested inside other component's JSON. For example, if one wants to render an icon within the button (like a send icon),
 the JSON would look as follows:
 ```JSON showLineNumbers title="JSON for rendering react children"
 {
@@ -424,13 +426,7 @@ class SpectrometerGUI(ReactApp):
             )
         ))
 ```
-:::note 
-The `RemoteFSM` is a contruct of the hololinked data-acquisition package where the FSM is defined somewhere within the server 
-and a state is returned on each and every request (just to remain updated on the latest state of the server). The actions of 
-mobx-render-engine automatically applies the new state from the response JSON of the request. Nevertheless, 
-a pure client side state machine is also possible and the props will be applied automatically by MobX when a set state global action 
-is called. 
-:::
+
 </TabItem>
 <TabItem value="json" label="generated JSON">
 
@@ -516,7 +512,7 @@ These actions are specified as JSON in the python side and are resolved into fun
 of these actions is the duty of the developer who provides the python components to the python user. <br />
 Moreover, if these actions contain JSON data or return JSON data (say a HTTP response) compliant to the JSON schema of component state, 
 they will be automatically applied by mobx-render-engine (no need for separate react state management). 
-The JSON should be return under a field specified under 
+The JSON should be return under a field specified under UIComponents:
 
 ```JSON showLineNumbers title="response data schema for automatically updating (any) component state"
 {

@@ -26,21 +26,21 @@ export default function Home(): JSX.Element {
                         <Stack>
                             <h1>hololinked - Pythonic Supervisory Control and Data Acquisition / Internet of Things</h1>
                             <Typography>
-                                hololinked is (supposed to be) a versatile and pythonic tool for building data acquisition and control software systems. <br />
+                                hololinked is a versatile and pythonic tool for building custom control and data acquisition software systems. <br />
                                 Benefit from HTTP support to write web interfaces for your instrumentation, along with the modern features & elegant frameworks web development offers. 
                             </Typography>
                             <Link to='https://hololinked.readthedocs.io'>
                                 detailed information and official python documentation - hololinked.readthedocs.io <OpenInNew fontSize='small'sx={{ pt : 1 }}/>
                             </Link>
                             <RepositoryTable />
-                            <Typography>
+                            {/* <Typography>
                                 Documentation for the admin panel will be made online soon (before end of 2024), but its fairly intuitive to use. <br />
                                 This website is dedicated to examples, notes & applications which cannot be part of official documentation. 
                                 Go to blog tab for the same.
                             </Typography>
                             <Link to="contact">
                                 Open Collective Donation Box <OpenInNew fontSize='small'sx={{ pt : 1 }}/>
-                            </Link>
+                            </Link> */}
                         </Stack>
                     </Grid>
                 </Grid>
@@ -79,10 +79,10 @@ const RepositoryTable = () => {
                         </td>
                     </tr>
                     <tr>
-                        <td>client admin panel</td>
+                        <td>control panel for server</td>
                         <td>
-                            <Link to='https://github.com/VigneshVSV/hololinked-portal'>
-                                https://github.com/VigneshVSV/hololinked-portal
+                            <Link to='https://github.com/VigneshVSV/thing-control-panel'>
+                                https://github.com/VigneshVSV/thing-control-panel
                             </Link>
                         </td>
                     </tr>

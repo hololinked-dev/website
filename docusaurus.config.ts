@@ -68,27 +68,27 @@ const config: Config = {
             //     src: 'img/logo.svg',
             // },
             items: [
-                { 
-                    type: 'dropdown',
-                    label: 'Docs', 
-                    position: 'left',
-                    items: [
-                        {
-                            label: 'official python documentation',
-                            href: 'https://hololinked.readthedocs.io/en/latest/'
-                        },
-                        {
-                            label: 'mobx-render-engine',
-                            href: 'https://mobx-render-engine.hololinked.dev',
-                        },
-                    ]
-                },
-                { 
-                    label: 'Examples', 
-                    position: 'left',
-                    type: 'docSidebar',
-                    sidebarId: 'examplesAsDocSidebar',
-                },
+                // { 
+                //     type: 'dropdown',
+                //     label: 'Docs', 
+                //     position: 'left',
+                //     items: [
+                //         {
+                //             label: 'official python documentation',
+                //             href: 'https://hololinked.readthedocs.io/en/latest/'
+                //         },
+                //         {
+                //             label: 'mobx-render-engine',
+                //             href: 'https://mobx-render-engine.hololinked.dev',
+                //         },
+                //     ]
+                // },
+                // { 
+                //     label: 'Examples', 
+                //     position: 'left',
+                //     type: 'docSidebar',
+                //     sidebarId: 'examplesAsDocSidebar',
+                // },
                 {
                     to: '/blog',
                     label: 'Blog',

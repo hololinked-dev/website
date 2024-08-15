@@ -21,7 +21,16 @@ export default function ContactInfo() {
                     <Typography>
                         I work in data-acquisition full-time, feel free to contact me or open discussions in the GitHub repository.
                     </Typography>
-                    <OpenCollectiveTable />
+                    <Stack direction="row">
+                        Find me on
+                        <Link to="https://discord.com/users/1178428338746966066" style={{ paddingLeft : "3px"}}>
+                            Discord
+                        </Link>,
+                        <Link to="https://www.linkedin.com/in/v-vignesh-venkata-subramanian-7a53a3108/" style={{ paddingLeft : "3px"}}>
+                            LinkedIn
+                        </Link>
+                    </Stack>
+                    <SponsorshipTable />
                 </Stack>
             </Box>
         </Layout>
@@ -29,21 +38,39 @@ export default function ContactInfo() {
 }
 
 
-const OpenCollectiveTable = () => {
+const SponsorshipTable = () => {
 
     return(
         <Box sx={{pt : 2, display : 'flex', justifyContent : 'center' }}>
         <table>
             <thead>
                 <tr>
-                    <th>Open Collective Donation Box</th>
+                    <th>Sponsor</th>
+                    <th>Link</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
+                    <td>Open Collective</td>
                     <td>
                         <Link to='https://opencollective.com/hololinked-dev'>
                             https://opencollective.com/hololinked-dev
+                        </Link>
+                    </td>
+                </tr>
+                <tr>
+                    <td>GitHub Sponsors</td>
+                    <td>
+                        <Link to='https://github.com/sponsors/VigneshVSV'>
+                            https://github.com/sponsors/VigneshVSV
+                        </Link>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Buy me a coffee</td>
+                    <td>
+                        <Link to='https://buymeacoffee.com/vigneshvsv'>
+                            https://buymeacoffee.com/vigneshvsv
                         </Link>
                     </td>
                 </tr>

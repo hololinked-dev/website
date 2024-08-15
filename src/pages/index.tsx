@@ -33,14 +33,6 @@ export default function Home(): JSX.Element {
                                 detailed information and official python documentation - hololinked.readthedocs.io <OpenInNew fontSize='small'sx={{ pt : 1 }}/>
                             </Link>
                             <RepositoryTable />
-                            {/* <Typography>
-                                Documentation for the admin panel will be made online soon (before end of 2024), but its fairly intuitive to use. <br />
-                                This website is dedicated to examples, notes & applications which cannot be part of official documentation. 
-                                Go to blog tab for the same.
-                            </Typography>
-                            <Link to="contact">
-                                Open Collective Donation Box <OpenInNew fontSize='small'sx={{ pt : 1 }}/>
-                            </Link> */}
                         </Stack>
                     </Grid>
                 </Grid>

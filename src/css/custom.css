@@ -47,7 +47,7 @@ Some useful colors - dont remove
     --ifm-link-color: #c2b225;
 }
 
-[data-theme='dark'] footer {
+[data-theme='dark'] .footer--dark {
     background-color: #303846;
 }
 

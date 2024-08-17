@@ -1,6 +1,38 @@
-import { Box, Typography, Stack } from "@mui/material"
+import { Box, Typography, Stack, Button } from "@mui/material"
+import { useColorMode } from '@docusaurus/theme-common';
+import { getCalApi } from "@calcom/embed-react";
+import { useEffect } from "react";
 import Layout from '@theme/Layout';
 import Link from "@docusaurus/Link";
+
+
+
+
+
+function CalLink() {
+    const { colorMode } = useColorMode();
+    console.log(colorMode);
+    
+    useEffect(()=>{
+        (async function () {
+            const cal = await getCalApi({"namespace":"15min"});
+            cal("ui", {
+                theme: colorMode === "dark" ? "dark" : 'light', 
+
+            });
+        })();
+    }, [colorMode])
+
+    return (
+        <Button 
+            sx={{ maxWidth : 200, backgroundColor : "#2e8555", "&:hover": { backgroundColor: "#3b956f" } }}
+            variant="contained"
+            data-cal-link="vigneshvsv"
+        >
+            Schedule a Meeting
+        </Button>
+    )
+}
 
 
 export default function ContactInfo() {
@@ -31,6 +63,7 @@ export default function ContactInfo() {
                         </Link>
                     </Stack>
                     <SponsorshipTable />
+                    <CalLink />
                 </Stack>
             </Box>
         </Layout>

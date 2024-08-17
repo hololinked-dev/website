@@ -51,6 +51,9 @@ Some useful colors - dont remove
     background-color: #303846;
 }
 
+[data-theme='dark'] .footer {
+    background-color: #303846;
+}
 
 .col--7 {
     --ifm-col-width: calc(10 / 12 * 100%);

@@ -42,7 +42,7 @@ export default function ContactInfo() {
             title="contact"
             description="hololinked offical website"
         >
-            <Box sx={{ justifyContent : 'center', display : 'flex', pt : 10 }}>
+            <Box sx={{ justifyContent : 'center', display : 'flex', pt : 10, p : 2 }}>
                 <Stack>
                     <Typography>
                         {"EMAIL : "}
@@ -64,6 +64,13 @@ export default function ContactInfo() {
                     </Stack>
                     <SponsorshipTable />
                     <CalLink />
+                    <Typography>
+                        <br></br>
+                        There is also a unpopulated discord group for this project if you wish to join - 
+                        <Link to="https://discord.com/invite/kEz87zqQXh" style={{ paddingLeft : "3px"}}>
+                            Discord Group
+                        </Link>
+                    </Typography>
                 </Stack>
             </Box>
         </Layout>

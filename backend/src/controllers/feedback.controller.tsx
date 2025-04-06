@@ -1,5 +1,6 @@
-import Feedback from '../models/feedback.model.js';
+import Feedback from '../models/feedback.model'
 
+// @ts-ignore
 export const addNewFeedback = async (req, res) => {
     try {
         const { name, email, text } = req.body;
@@ -11,6 +12,7 @@ export const addNewFeedback = async (req, res) => {
     }
 };
 
+// @ts-ignore
 export const getFeedbacks = async (req, res) => {
     try {
         const feedbacks = await Feedback.find();
@@ -20,6 +22,7 @@ export const getFeedbacks = async (req, res) => {
     }
 };
 
+// @ts-ignore
 export const getFeedbackById = async (req, res) => {
     try {
         const feedback = await Feedback.findById(req.params.id);

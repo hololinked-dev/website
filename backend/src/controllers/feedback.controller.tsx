@@ -4,7 +4,8 @@ import Feedback from '../models/feedback.model'
 export const addNewFeedback = async (req, res) => {
     try {
         const { name, email, text } = req.body;
-        const feedback = new Feedback({ name, email, text });
+        const id = new Date().getTime().toString(36) + Math.random().toString(36).substring(2, 15);
+        const feedback = new Feedback({ id, name, email, text });
         await feedback.save();
         res.status(201).json({ message: 'Feedback submitted successfully', feedback });
     } catch (error) {

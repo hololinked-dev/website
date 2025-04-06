@@ -3,7 +3,7 @@ node_modules
 dist 
 
 # Production
-/build
+build
 
 
 # Generated files

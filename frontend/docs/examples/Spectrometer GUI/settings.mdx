@@ -1,0 +1,277 @@
+---
+slug: spectrometer-gui-in-reactjs-layout-settings
+title: Settings
+authors:
+    name: Vignesh Venkatasubramanian Vaidyanathan
+---
+
+import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
+import BrowserOnly from '@docusaurus/BrowserOnly';
+import { FailedSSRMessage, ScrollToTop } from '@site/src/components/helpers'
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+In this panel, we will include all options which will change measurement settings of the spectrometer. 
+On the python side, these settings are implemented mostly as remote-parameters. Instead of querying each parameter individually, 
+we will query the required ones all at once. Further, we will create (yet) another context to store these settings and a 
+setState hook to update these settings:
+
+```tsx showLineNumbers
+type SettingOptions = {
+    autoApply? : boolean
+    triggerMode? :  0 | 1 | 2 | 3 
+    integrationTime? : number
+    // integrationTimeBounds? : Array<number>,
+    backgroundSubstraction? : 'AUTO' | 'CUSTOM' | null
+    customBackgroundIntensity? : Array<number> | null
+}
+
+const defaultSettings : SettingOptions = {
+    autoApply : false,
+    triggerMode : 0,
+    integrationTime : 1000,
+    // integrationTimeBounds : [1, 1000],
+    backgroundSubstraction : null, 
+    customBackgroundIntensity : null
+}
+
+const SettingsContext = createContext<[SettingOptions, Function]>([defaultSettings, 
+    () => console.error("no settings update method provided yet")])
+
+
+const Settings = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    const [settings, setSettings] = useState(defaultSettings) 
+    
+    const updateSettings = (newSettings : SettingOptions) => {
+        setSettings({
+            ...settings,
+            ...newSettings
+        })
+        // console.log("new settings", {
+        //     ...settings,
+        //     ...newSettings
+        // })
+    } 
+
+    return (
+        <Stack sx={{ opacity : device.URL? 1 : 0.15, pointerEvents : device.URL? 'all' : 'none'}}>
+            <SettingsContext.Provider value={[settings, updateSettings]}>
+                <Typography variant='button' color={'grey'} fontSize={18} sx={{p : 2}}>
+                    settings :
+                </Typography>    
+                <AutoApplySettings />
+                <TriggerModeOptions />
+                <IntegrationTime />
+                {/* <IntegrationTimeBounds /> does not work now */}
+                <BackgroundSubstraction />
+            </SettingsContext.Provider>
+        </Stack>
+    )
+}
+```
+
+i.e., The `SettingsContext` is loaded with `defaultSettings`, which can be updated by `updateSettings` function. The children below 
+like `<TriggerModeOptions />` `<IntegrationTime />` are the components through which these settings are changed, and `<AutoApplySettings />`
+is a checkbox which toggles a flag to control whether such settings are to be applied immediately on change (linked to value `SettingOptions.autoApply`). 
+The pointer events/opacity are meant to show that the settings panel is disabled when the device URL is not valid.
+Further, modifying each of the setting is a fairly repetitive logic - the new value is sent to the server, applied on the device by the server and the server 
+returns the current value, which has to be updated back to the component. Therefore, we will create yet another hook `useDeviceSetting` which will 
+make the request and return the current value. 
+
+```tsx showLineNumbers title='/src/core/device.tsx'
+const useDeviceSetting = (name : string, URL : string) : [any, Function, boolean] => {
+    const [settings, updateSettings] = useContext(SettingsContext)
+    const autoApply = settings.autoApply
+    const setting = settings[name as keyof SettingOptions]
+    
+    const [error, setError] = useState<boolean>(false)
+    
+    const handleSettingChange = useCallback((value : any) => {
+        const apply = async() => {
+            let finalSetting : SettingOptions = {}, hasError = false
+            if(autoApply) {
+                try {
+                    const response = await axios.put(
+                        URL, { value : value }
+                    )
+                    switch(response.status) {
+                        case 200: value = response.data.returnValue; break;
+                        case 404: hasError = true; break;
+                    }
+                } catch(error) {
+                    console.log(error)
+                    hasError = true
+                }
+            }
+            finalSetting[name as keyof SettingOptions] = value
+            updateSettings(
+                { triggerMode : finalSettingValue }   
+            )
+            setError(hasError)
+        }
+        // console.log(event.target.value)
+        apply()
+    }, [setting, autoApply, URL, updateSettings])
+        
+    return [setting, handleSettingChange, error] 
+}
+```
+It takes the setting name, its full URL as arguments and returns the current value, a setter method which sends the value to the server & an error flag which 
+tells if the setter failed. The individual settings are implemented as follows by using the hook:
+
+<Tabs>
+{/* -------- */}
+<TabItem value="auto-apply" label="Auto Apply">
+```tsx showLineNumbers title='src/core/device.tsx'
+const AutoApplySettings = () => {
+
+    const [{ autoApply }, updateSettings] = useContext(SettingsContext)
+
+    const toggleAutoApply = () => {
+        let newAutoApply = autoApply? false : true // i.e. toggle every time 
+        updateSettings({ autoApply : newAutoApply })
+    }
+
+    return (    
+        <Stack direction='row'>
+            <Typography variant='button' color={'grey'} fontSize={14} sx={{ p : 1, pl : 2.5}}>
+                auto apply on change :
+            </Typography>
+            <Checkbox checked={autoApply} onChange={toggleAutoApply}></Checkbox>
+        </Stack>
+    )
+}
+```
+</TabItem>
+{/* -------- */}
+<TabItem value="trigger-mode" label="Trigger Mode" default>
+```tsx showLineNumbers
+const TriggerModeOptions = () => {
+        
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    const [triggerMode, setTriggerMode, error] = useDeviceSetting('triggerMode', `${device.URL}/trigger-mode`)
+  
+    return (
+        <FormControl>
+            <Stack direction='row'>
+                <Typography variant='button' color={'grey'} fontSize={14} sx={{ p : 2.5}}>
+                    trigger settings :
+                </Typography>
+                <RadioGroup
+                    row
+                    value={triggerMode}
+                    name="radio-buttons-group"   
+                    onChange={(event : React.ChangeEvent<HTMLInputElement>) => {setTriggerMode(Number(event.target.value))}}
+                >
+                    <FormControlLabel value={0} control={<Radio />} label="continuous" />
+                    <FormControlLabel value={1} control={<Radio />} label="software" />
+                    <FormControlLabel value={2} control={<Radio />} label="hardware" />
+                </RadioGroup>
+            </Stack>
+        </FormControl>
+    )
+}
+```
+</TabItem>
+<TabItem value="integration-time" label="Integration Time">
+For integration time, we will allow the user to input in two different units. 
+```tsx showLineNumbers
+const IntegrationTime = () => {
+
+    const [device, _] = useContext(DeviceContext) as DeviceContextType
+    const [integrationTimeUnit, setIntegrationTimeUnit] = useState<string>('milli-seconds')
+    const [__, updateSettings] = useContext(SettingsContext)
+    const [integrationTime, setIntegrationTime] = useDeviceSetting('integrationTime', 
+                                                                `${device.URL}/integration-time/${integrationTimeUnit}`)
+
+    const handleIntegrationTimeUnitChange = useCallback((event : React.ChangeEvent<HTMLInputElement>) => {
+        let newIntegrationTime = integrationTimeUnit === 'milli-seconds'? (integrationTime as number)*1000 : (integrationTime as number)/1000
+        setIntegrationTimeUnit(event.target.value)
+        updateSettings({ integrationTime : newIntegrationTime })
+    }, [integrationTime, integrationTimeUnit])
+
+    return (
+        <Stack direction='row'>
+            <Typography variant='button' color={'grey'} fontSize={14} sx={{ p : 2.5}}>
+                Integration Time :
+            </Typography>
+            <TextField 
+                variant='filled' 
+                size='small' 
+                helperText={integrationTimeUnit} 
+                onChange={(event : React.ChangeEvent<HTMLInputElement>) => {setIntegrationTime(Number(event.target.value))}}
+                value={integrationTime}
+            />
+            <RadioGroup 
+                row 
+                sx={{ pb : 2, pl : 1 }} 
+                defaultValue='milli-seconds'
+                onChange={handleIntegrationTimeUnitChange}
+            >
+                <FormControlLabel value='milli-seconds' control={<Radio />} label='ms' />
+                <FormControlLabel value='micro-seconds' control={<Radio />} label='µs' />
+            </RadioGroup>
+        </Stack>
+    )
+}
+```
+</TabItem>
+<TabItem value="background-substraction" label="Background Substraction">
+```tsx showLineNumbers
+const BackgroundSubstraction = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    const [backgroundSubstraction, setBackgroundSubstraction] = useDeviceSetting('backgroundSubstraction',
+                                                                        `${device.URL}/background-correction`)
+    
+    const handleBackgroundSubstraction = useCallback((checked : boolean, type : 'AUTO' | 'CUSTOM') => {
+        setBackgroundSubstraction(checked? type : null)
+    }, [setBackgroundSubstraction])
+
+    return (
+        <>
+            <Stack direction='row'>
+                <Typography variant='button' color={'grey'} fontSize={14} sx={{ p : 1, pl : 2.5}}>
+                    Auto Background Substraction :
+                </Typography>
+                <Checkbox 
+                    checked={backgroundSubstraction==='AUTO'} 
+                    onChange={(event : React.ChangeEvent<HTMLInputElement>) => handleBackgroundSubstraction(event.target.checked, 'AUTO')}
+                />    
+            </Stack>
+            <Stack direction='row'>
+                <Typography variant='button' color={'grey'} fontSize={14} sx={{ p : 1, pl : 2.5}}>
+                    Custom Background :
+                </Typography>
+                <Checkbox
+                    checked={backgroundSubstraction==='CUSTOM'} 
+                    onChange={(event : React.ChangeEvent<HTMLInputElement>) => handleBackgroundSubstraction(event.target.checked, 'CUSTOM')}
+                />
+            </Stack>
+        </>
+    )
+}
+```
+</TabItem>
+</Tabs>
+
+export const BrowserSettingsApp = () => {
+    return (
+        <div>
+            {ExecutionEnvironment.canUseDOM? 
+                <BrowserOnly>
+                    {() => {
+                        const ControlAppWithSettings = require('@site/src/examples/hololinked-spectrometer-gui/src/documentation/settings').ControlAppWithSettings
+                        return <ControlAppWithSettings />
+                    }} 
+                </BrowserOnly> : 
+                <FailedSSRMessage />
+            }
+        </div>
+    )
+}
+
+<BrowserSettingsApp />
+(Works better in light-mode than in dark-mode)

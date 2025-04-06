@@ -1,0 +1,33 @@
+---
+slug: spectrometer-gui-in-reactjs-layout
+title: Layout
+authors:
+    name: Vignesh Venkatasubramanian Vaidyanathan
+---
+
+import LayoutPic from '@site/static/docs/spectrometer-gui/layout.png';
+
+For the main layout, a few buttons will be added which will control hardware connection, acquisition start/stop etc., a graph which will plot the spectrum 
+and a settings panel.  
+
+<img src={LayoutPic}></img>
+
+We start by writing the control-box/layout: 
+
+```tsx showLineNumbers title='/src/core/device.tsx'
+import { Box, Button, Stack, ButtonGroup, Typography, Divider } from '@mui/material';
+
+export const DeviceConsole = () => {
+    return (
+        <Stack direction='row'>
+            <Stack>
+                <Control />
+                <SpectrumGraph />
+            </Stack>
+            <Divider orientation="vertical" sx={{ pl : 2 }} />
+            <Settings />
+        </Stack>
+    )
+}
+```
+

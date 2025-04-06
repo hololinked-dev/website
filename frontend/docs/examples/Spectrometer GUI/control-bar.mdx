@@ -1,0 +1,341 @@
+---
+slug: spectrometer-gui-in-reactjs-layout-control-bar
+title: Control Bar
+authors:
+    name: Vignesh Venkatasubramanian Vaidyanathan
+---
+
+import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
+import BrowserOnly from '@docusaurus/BrowserOnly';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import { FailedSSRMessage, ScrollToTop } from '@site/src/components/helpers'
+
+
+export function BrowserControlApp() {
+    
+    return (
+        <div>
+            {ExecutionEnvironment.canUseDOM? 
+                <BrowserOnly>
+                    {() => {
+                        const ControlApp = require('@site/src/examples/hololinked-spectrometer-gui/src/documentation/control-bar').ControlApp
+                        return <ControlApp />
+                    }} 
+                </BrowserOnly> : 
+                <FailedSSRMessage />
+            }
+        </div>
+    )
+}
+
+Approximate Output:
+<BrowserControlApp />
+<br/>
+
+<Tabs>
+{/* -------- */}
+<TabItem value="connect" label="Connect" default>
+We will use the internal state of the device to have a multi-purpose connect button. When the device is connected, or in `ON` or `FAULT` state, we will show 
+`DISCONNECT` text, & when the device is in `DISCONNECTED` state, we will show `CONNECT` text. Further, the button will be disabled when there is no active device (i.e.
+no remote object has been found) & the connection endpoints have to be factored. First, we just write a plain button:
+
+```tsx showLineNumbers title='/src/core/device.tsx'
+const ConnectionButton = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+   
+    const toggleDeviceConnection = useCallback(async() => {
+        console.log('toggle connection called')
+    }, [])
+
+    return (
+        <Button 
+            variant='contained' 
+            size='large'
+            onClick={toggleDeviceConnection}
+        >
+            button text here
+        </Button>
+    )
+}
+```
+We will assume that the state machine of the device works decently well. Therefore we will simply apply certain props on the button based on the state of the device. 
+We will invent a hook `useRemoteFSM` which returns certain props based on the state of the device. The current props will be passed using yet another context. This also helps 
+updating the props at a single place instead of every component.
+
+```tsx showLineNumberstitle='/src/core/props.tsx'
+export const FSMProps = {
+    ON : { 
+        connection : {
+            text : 'Disconnect', 
+            endpoint : '/disconnect', 
+            disabled : false
+        },
+    },
+    DISCONNECTED : {
+        connection : {
+            text : 'Connect', 
+            endpoint : '/connect', 
+            disabled : false
+        }
+    },
+    MEASURING : {
+        connection : {
+            text : 'Disconnect', 
+            endpoint : '/disconnect', 
+            disabled : true
+        }
+    },
+    DEFAULT : {
+        connection : {
+            text : 'Connect', 
+            endpoint : '/connect', 
+            disabled : false
+        }
+    }
+}
+```
+
+The above JSON is props for the connection button for each state & the default value. For each component using such an FSM, this JSON will be extended with a new key on each state (with 
+`connection` being the key/id for connection button). To read the props for the correct state:
+
+```tsx showLineNumbers title='/src/helpers/hooks.tsx'
+export const useRemoteFSM = (FSMProps : {[key : string] : { [key : string] : any}}, 
+                                                            state : string) => {
+
+    const [currentProps, setCurrentProps] = useState(FSMProps[state] || FSMProps["DEFAULT"]) 
+    // initial value of the props
+
+    useEffect(() => {
+        let newProps = FSMProps[state]
+        if(!newProps) // if state is not defined in the JSON, use DEFAULT field
+            newProps = FSMProps["DEFAULT"]
+        console.log("new props", newProps)
+        setCurrentProps(newProps)
+    }, [state]) // update props whenever state changes
+
+    return currentProps // return current props
+}
+```
+
+To use the hook, we edit the `DeviceConsole` component:
+
+```tsx showLineNumbers {5,10,14,21} title='src/core/device.tsx'
+import { DeviceContext, DeviceContextType } from "../App";
+import { useRemoteFSM } from "../helpers/hooks";
+import { FSMProps } from "./props";
+
+const FSMContext = createContext<{[key : string] : { [key : string] : any}}>(FSMProps["DEFAULT"])
+
+export const DeviceConsole = () => {
+
+    const [device, _] = useContext(DeviceContext) as DeviceContextType
+    const currentProps = useRemoteFSM(FSMProps as any, device.state)
+
+    return (
+        <Stack direction='row'>
+            <FSMContext.Provider value={currentProps} >
+                <Stack>
+                    <Control />
+                    <SpectrumGraph />
+                </Stack>
+                <Divider orientation="vertical" sx={{ pl : 2 }} />
+                <Settings />
+            </FSMContext.Provider>
+        </Stack>
+    )
+}
+```
+
+We will now read the props in `ConnectionButton` component inside `Control` component. 
+
+```tsx showLineNumbers {4,8,26,28}
+const ConnectionButton = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    const { text, endpoint, disabled } = useContext(FSMContext)["connection"]
+    
+    const toggleDeviceConnection = useCallback(async() => {
+        try {await axios({
+            url : endpoint, 
+            baseURL : device.URL,
+            method : 'post',
+        }).then((response) => {
+            setDevice({
+                ...device, 
+                state : response.data.state[device.instanceName]
+            })
+        }).
+        }catch((error : any) => {
+            console.log(error)
+        })
+    }, [device, endpoint])
+
+    return (
+        <Button 
+            variant='contained' 
+            size='large'
+            onClick={toggleDeviceConnection}
+            disabled={disabled}
+        >
+            {text}
+        </Button>
+    )
+}
+```
+
+
+The button can be tried now <ScrollToTop/>.
+
+</TabItem>
+{/* -------- */}
+<TabItem value="acquisition" label="Acquisition">
+Similar to connection button, we use a state machine to enable and disable acquisition. 
+
+```tsx showLineNumbers {4,8,23,26,30-31,37-38} title='/src/core/device.tsx'
+const AcquisitionButtons = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    const { endpoint, disabled } = useContext(FSMContext).acquisition
+    
+    const toggleAcquisition = useCallback(async() => {
+        await axios({
+            url : endpoint, 
+            baseURL : device.URL,
+            method : 'post',
+        }).then((response) => {
+            setDevice({
+                ...device, 
+                state : response.data.state[device.instanceName]
+            })
+        }).catch((error : any) => {
+            console.log(error)
+        })
+    }, [device, endpoint])
+    
+    return (
+        <Stack direction='row'>
+            <ButtonGroup disabled={disabled}>
+                <Button disabled>
+                    Acquisition :
+                    {/* Not a real button, written as button only for correct padding & borders */} 
+                </Button>
+                <Button 
+                    variant='contained' size='large' color='secondary'
+                    disabled={device.state !== 'MEASURING'}    
+                    onClick={toggleAcquisition}
+                >
+                    Start
+                </Button>
+                <Button 
+                    variant='contained' size='large' color='secondary'
+                    disabled={device.state === 'MEASURING'}
+                    onClick={toggleAcquisition}
+                >
+                    Stop
+                </Button>
+            </ButtonGroup>
+        </Stack>
+    )
+}
+```
+where acquisition field in FSM context is updated as follows:
+
+```tsx showLineNumbers {6-8,19-21,28-31} title='/src/core/props.tsx'
+export const FSMProps = {
+    ON : { 
+        connection : {
+            ...
+        },
+        acquisition : {
+            disabled : false
+        }
+    },
+    DISCONNECTED : {
+        connection : {
+            ...
+        }
+    },
+    MEASURING : {
+        connection : {
+            ...
+        },
+        acquisition : {
+            disabled : false, 
+            endpoint : '/acquisition/stop'
+        }
+    },
+    DEFAULT : {
+        connection : {
+            ...
+        },
+        acquisition : {
+            disabled : true,
+            endpoint : '/acquisition/start'
+        }
+    }
+}
+```
+Back to top : <ScrollToTop/>
+
+</TabItem>
+{/* -------- */}
+<TabItem value="state-&-reset-fault" label="State & Reset Fault">
+For the state label, we will simply read the `DeviceContext` value 
+
+```tsx showLineNumbers title='/src/core/device.tsx'
+const CurrentState = () => {
+
+    const [device, _] = useContext(DeviceContext) as DeviceContextType
+   
+    return (
+        <Typography variant='button'>
+            State : {device.state}
+        </Typography>
+    )
+}
+```
+The reset-fault button should become active when the device is in fault state. Instead of using `FSMProps`, 
+we will directly update this in the component. 
+
+```tsx showLineNumbers title='/src/core/device.tsx'
+const ResetFaultButton = () => {
+
+    const [device, setDevice] = useContext(DeviceContext) as DeviceContextType
+    
+    const resetFault = useCallback(async() => {
+        await axios({
+            url : '/fault/reset', 
+            baseURL : device.URL,
+            method : 'post',
+        }).then((response) => {
+            setDevice({
+                ...device, 
+                state : response.data.state[device.instanceName]})
+        }).catch((error : any) => {
+            console.log(error)
+        })
+    }, [device])
+
+    return (
+        <Button 
+            variant='contained' 
+            size='large'
+            onClick={resetFault}
+            disabled={device.state !== 'FAULT'}
+        >
+            Reset Fault
+        </Button>
+    )
+}
+```
+
+Back to top : <ScrollToTop/>
+</TabItem>
+{/* -------- */}
+</Tabs>
+
+
+
+

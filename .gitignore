@@ -1,8 +1,10 @@
 # Dependencies
-/node_modules
+node_modules
+dist 
 
 # Production
 /build
+
 
 # Generated files
 .docusaurus

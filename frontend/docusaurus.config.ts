@@ -3,7 +3,6 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 
-
 prismThemes.vsLight.plain.backgroundColor = "#f0f4c3" 
 
 /* 
@@ -21,21 +20,13 @@ const config: Config = {
 
     // Set the production url of your site here
     url: 'https://hololinked.dev',
-    // Set the /<baseUrl>/ pathname under which your site is served
-    // For GitHub pages deployment, it is often '/<projectName>/'
     baseUrl: '/',
 
-    // GitHub pages deployment config.
-    // If you aren't using GitHub pages, you don't need these.
-    // organizationName: 'facebook', // Usually your GitHub org/user name.
     projectName: 'hololinked', // Usually your repo name.
 
     onBrokenLinks: 'throw',
     onBrokenMarkdownLinks: 'warn',
 
-    // Even if you don't use internationalization, you can use this field to set
-    // useful metadata like html lang. For example, if your site is Chinese, you
-    // may want to replace "en" with "zh-Hans".
     i18n: {
         defaultLocale: 'en',
         locales: ['en'],
@@ -63,32 +54,7 @@ const config: Config = {
         // image: 'img/docusaurus-social-card.jpg',
         navbar: {
             title: 'hololinked',
-            // logo: {
-            //     alt: 'My Site Logo',
-            //     src: 'img/logo.svg',
-            // },
             items: [
-                // { 
-                //     type: 'dropdown',
-                //     label: 'Docs', 
-                //     position: 'left',
-                //     items: [
-                //         {
-                //             label: 'official python documentation',
-                //             href: 'https://hololinked.readthedocs.io/en/latest/'
-                //         },
-                //         {
-                //             label: 'mobx-render-engine',
-                //             href: 'https://mobx-render-engine.hololinked.dev',
-                //         },
-                //     ]
-                // },
-                // { 
-                //     label: 'Examples', 
-                //     position: 'left',
-                //     type: 'docSidebar',
-                //     sidebarId: 'examplesAsDocSidebar',
-                // },
                 {
                     to: '/blog',
                     label: 'Blog',
@@ -115,7 +81,11 @@ const config: Config = {
             darkTheme: prismThemes.vsDark,
         },
 
-    } satisfies Preset.ThemeConfig
+    } satisfies Preset.ThemeConfig,
+
+    customFields: {
+        backendURL: process.env.BACKEND_URL 
+    },
 };
 
 export default config;

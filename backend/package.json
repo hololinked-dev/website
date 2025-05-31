@@ -1,0 +1,41 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "description": "backend support general website related operations",
+  "main": "./lib/server.js",
+  "scripts": {
+    "test": "test",
+    "build": "tsc",
+    "lint": "tslint -c tslint.json src/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hololinked-dev/website.git"
+  },
+  "keywords": [
+    "hololinked"
+  ],
+  "author": {
+    "name": "Vignesh Vaidyanathan"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hololinked-dev/website/issues"
+  },
+  "homepage": "https://github.com/hololinked-dev/website#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2",
+    "tslint": "^6.1.3",
+    "typescript": "^5.8.3"
+  },
+  "files": [
+    "./bin/*",
+    "./lib/*"
+  ],
+  "typings": "./lib/server.d.ts",
+  "devDependencies": {
+    "@types/express": "^5.0.1"
+  }
+}

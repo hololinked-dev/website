@@ -1,8 +1,10 @@
 # Dependencies
-/node_modules
+node_modules
+dist 
 
 # Production
-/build
+build
+
 
 # Generated files
 .docusaurus
@@ -14,6 +16,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+**/.env
 code-comments.txt
 .vscode
 

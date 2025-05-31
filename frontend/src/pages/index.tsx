@@ -4,6 +4,8 @@ import { OpenInNew } from '@mui/icons-material';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
+import { useEffect, useState } from 'react';
+import repoInfo from './info/repo-info.json';
 
 
 export default function Home(): JSX.Element {
@@ -32,6 +34,9 @@ export default function Home(): JSX.Element {
                             <Link to='https://hololinked.readthedocs.io'>
                                 detailed information and official python documentation - hololinked.readthedocs.io <OpenInNew fontSize='small'sx={{ pt : 1 }}/>
                             </Link>
+                            <Link to="https://github.com/hololinked-dev">
+                                GitHub organisation <OpenInNew fontSize='small'sx={{ pt : 1 }}/>
+                            </Link>
                             <RepositoryTable />
                         </Stack>
                     </Grid>
@@ -42,10 +47,16 @@ export default function Home(): JSX.Element {
 }
 
 
-const RepositoryTable = () => {
     
+const RepositoryTable = () => {
+    const [repositories, setRepositories] = useState<{ title: string; link: string; linkText: string }[]>([]);
+
+    useEffect(() => {
+        setRepositories(repoInfo);
+    }, []);
+
     return (
-        <Box sx={{pt : 2, display : 'flex', justifyContent : 'center' }}>
+        <Box sx={{ pt: 2, display: 'flex', justifyContent: 'center' }}>
             <table>
                 <thead>
                     <tr>
@@ -54,36 +65,16 @@ const RepositoryTable = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>hololinked core - python server-side</td>
-                        <td>
-                            <Link to='https://github.com/VigneshVSV/hololinked'>
-                                https://github.com/VigneshVSV/hololinked
-                            </Link>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>python examples</td>
-                        <td>
-                            <Link to='https://github.com/VigneshVSV/hololinked-examples'>
-                                https://github.com/VigneshVSV/hololinked-examples
-                            </Link>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>control panel for server</td>
-                        <td>
-                            <Link to='https://github.com/VigneshVSV/thing-control-panel'>
-                                https://github.com/VigneshVSV/thing-control-panel
-                            </Link>
-                        </td>
-                    </tr>
+                    {repositories.map((repo, index) => (
+                        <tr key={index}>
+                            <td>{repo.title}</td>
+                            <td>
+                                <Link to={repo.link}>{repo.linkText}</Link>
+                            </td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
         </Box>
-    )
-}
-
-
-
-
+    );
+};

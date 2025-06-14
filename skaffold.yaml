@@ -1,0 +1,105 @@
+# development version of the Python docs
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: dev-website
+build:
+  artifacts:
+  - image: dev_website
+    context: .
+    docker:
+      dockerfile: backend/Dockerfile
+      target: dev
+    # mkdocs reloading not working
+    sync:
+      manual:
+      - src: "backend/src/**/*"
+        dest: "/app"
+  tagPolicy:
+    envTemplate:
+      template: dev
+  local:
+    push: true
+deploy:
+  helm:
+    releases:
+    - name: dev-website-backend
+      chartPath: deployment/vps-maintenance/cluster/manifests/helm/apps
+      namespace: development
+      createNamespace: true
+      setValues:
+        nameOverride: dev-website-backend
+        image.ports.containerPort: 8000
+      setValueTemplates:
+        image:
+          repository: "{{ .IMAGE_REPO_docs_dev }}"
+          tag: "{{ .IMAGE_TAG_docs_dev }}@{{ .IMAGE_DIGEST_docs_dev }}"
+
+    - name: dev-website-ingress
+      chartPath: deployment/vps-maintenance/cluster/manifests/helm/ingress
+      namespace: development
+      createNamespace: true
+      valuesFiles:
+        - deployment/vps-maintenance/cluster/manifests/helm/ingress/values.yaml
+        - deployment/ingress-values.yaml
+      setValues:
+        nameOverride: dev-website-ingress
+
+
+---
+# staging a production version of the Python docs
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: staging-python-docs
+build:
+  artifacts:
+  - image: docs-v2
+    context: .
+    docker:
+      dockerfile: Dockerfile
+      target: prod
+    sync:
+      manual:
+      - src: "docs/**"
+        dest: "/app/docs"
+  tagPolicy:
+    envTemplate:
+      template: dev # TODO - two developers cannot simulataneously run the same image
+  local:
+    push: true
+deploy:
+  helm:
+    releases:
+    - name: staging-python-docs
+      chartPath: deployment/vps-maintenance/cluster/manifests/helm/apps
+      namespace: staging
+      createNamespace: true
+      setValues:
+        nameOverride: staging-python-docs
+        image:
+          repository: ghcr.io/hololinked-dev/docs-v2
+          tag: main
+          ports:
+            containerPort: 8000
+    
+    - name: staging-python-docs-ingress
+      chartPath: deployment/vps-maintenance/cluster/manifests/helm/ingress
+      namespace: staging
+      createNamespace: true
+      valuesFiles:
+        - deployment/vps-maintenance/cluster/manifests/helm/ingress/values.yaml
+        - deployment/ingress-values.yaml
+      setValues:
+        nameOverride: staging-python-docs-ingress
+        rules[0].host: docs.staging.hololinked.dev
+        rules[0].http.paths[0].backend.service.name: staging-python-docs
+        tls[0].hosts[0]: docs.staging.hololinked.dev
+        tls[0].secretName: docs-staging-hololinked-dev-tls
+        annotations:
+          cert-manager\.io/cluster-issuer: letsencrypt-prod
+        
+
+
+
+    

@@ -1,3 +1,6 @@
 [submodule "src/examples/hololinked-spectrometer-gui"]
 	path = src/examples/hololinked-spectrometer-gui
 	url = https://github.com/VigneshVSV/hololinked-spectrometer-gui.git
+[submodule "vps-maintenance"]
+	path = deployment/vps-maintenance
+	url = https://github.com/hololinked-dev/vps-maintenance.git

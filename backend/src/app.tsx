@@ -1,27 +1,24 @@
 import * as express from 'express';
-import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
 import feedbackRoutes from './routes/feedback.routes';
+import * as swaggerUi from 'swagger-ui-express';
+import * as YAML from 'yamljs';
+import * as path from 'path';
+
 
 dotenv.config();
+const swaggerDocument = YAML.load(path.join(__dirname, './docs/openapi.yaml'));
 
 const app = express();
 // Middleware
 app.use(express.json());
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/myapp';
-// MongoDB Connection
-mongoose
-    // @ts-ignore
-    .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
-
 // Routes
 // @ts-ignore
 app.get('/', (req, res) => {
-    res.send('Hello, World! I am accessible!');
+    res.redirect('/api-docs');
 });
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/feedbacks', feedbackRoutes);
 
 export default app;

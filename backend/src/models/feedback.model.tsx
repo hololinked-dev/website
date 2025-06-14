@@ -1,12 +1,55 @@
-import mongoose from 'mongoose';
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../db'; // Adjust the import path to your sequelize instance
 
-const feedbackSchema = new mongoose.Schema({
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    text: { type: String, required: true }
-});
+export class Feedback extends Model {
+    public id!: number | undefined;
+    public name!: string;
+    public email!: string;
+    public text!: string;
+}
 
-const Feedback = mongoose.model('Feedback', feedbackSchema);
+Feedback.init(
+    {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+            autoIncrement: true,
+        },
+        name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        text: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+    },
+    {
+        sequelize,
+        modelName: 'Feedback',
+        tableName: 'Feedbacks',
+        timestamps: true,
+        createdAt: 'created_at',
+        updatedAt: 'updated_at',
+        underscored: true, // Use snake_case for column names
+        indexes: [
+            {
+                unique: true,
+                fields: ['id'],
+            },
+        ],
+    }
+);
 
-export default Feedback;
+Feedback.sync({ alter: true })
+    .then(() => {
+        console.log('Feedback table created or updated successfully.');
+    })
+    .catch((error) => {
+        console.error('Error creating or updating Feedback table:', error);
+    });

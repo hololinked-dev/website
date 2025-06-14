@@ -1,0 +1,26 @@
+annotations:
+  cert-manager.io/cluster-issuer: letsencrypt-test
+ 
+tls:
+  - hosts:
+    - dev.hololinked.net
+    secretName: website-staging-hololinked-net-tls
+
+rules:
+- host: dev.hololinked.net
+  http:
+    paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dev-website-frontend
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: dev-website-backend
+            port:
+              number: 80

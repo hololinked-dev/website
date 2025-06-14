@@ -1,0 +1,124 @@
+openapi: 3.1.0
+info:
+  title: hololinked Website API
+  version: 0.1.0
+  description: API documentation for the Hololinked website backend.
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+
+
+components:
+  schemas:
+    Feedback:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        text:
+          type: string
+
+paths: 
+  /feedbacks:
+    post:
+      summary: Submit feedback
+      operationId: submitFeedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Feedback'
+      responses:
+        '201':
+          description: Feedback submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Feedback submitted successfully"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input data"
+    get:
+      summary: Get all feedbacks
+      operationId: getFeedbacks
+      responses:
+        '200':
+          description: List of feedbacks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+                    
+  /feedbacks/{id}:
+    get:
+      summary: Get feedback by ID
+      operationId: getFeedbackById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '404':
+          description: Feedback not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Feedback not found"
+  
+
+  /health:
+    get:
+      summary: Health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+       
+  
+

@@ -12,13 +12,37 @@ components:
   schemas:
     Feedback:
       type: object
+      description: Feedback submitted by users
       properties:
         name:
           type: string
+        type:
+          type: string
+          example: "bug" # or "feature"
         email:
           type: string
         text:
           type: string
+
+    ResponseMessage:
+      type: object
+      description: Plain response with a message field
+      properties:
+        message:
+          type: string
+          example: "Feedback submitted successfully"
+
+    HealthStatus:
+      type: object
+      description: Health status of the service
+      properties:
+        status:
+          type: string
+          example: "OK"
+        message:
+          type: string
+          example: "Service is healthy"
+
 
 paths: 
   /feedbacks:
@@ -37,21 +61,26 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Feedback submitted successfully"
+                $ref: '#/components/schemas/ResponseMessage'
         '400':
           description: Bad request
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Invalid input data"
+                $ref: '#/components/schemas/ResponseMessage'
+        '422':
+          description: Unprocessable payload or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseMessage'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseMessage'
+                
     get:
       summary: Get all feedbacks
       operationId: getFeedbacks
@@ -69,11 +98,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Internal server error"
+                $ref: '#/components/schemas/ResponseMessage'
                     
   /feedbacks/{id}:
     get:
@@ -97,11 +122,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Feedback not found"
+                $ref: '#/components/schemas/ResponseMessage'
   
 
   /health:
@@ -114,11 +135,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: "OK"
+                $ref: '#/components/schemas/HealthStatus'
+        '500':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
        
   
 

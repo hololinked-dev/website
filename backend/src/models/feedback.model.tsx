@@ -32,11 +32,11 @@ Feedback.init(
     {
         sequelize,
         modelName: 'Feedback',
-        tableName: 'Feedbacks',
+        tableName: 'feedbacks',
         timestamps: true,
         createdAt: 'created_at',
         updatedAt: 'updated_at',
-        underscored: true, // Use snake_case for column names
+        underscored: true,
         indexes: [
             {
                 unique: true,

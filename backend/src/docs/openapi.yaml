@@ -24,6 +24,32 @@ components:
         text:
           type: string
 
+    FeedbackRow:
+      type: object
+      description: Feedback data structure for database storage
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+        type:
+          type: string
+          example: "bug" # or "feature"
+        email:
+          type: string
+        text:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          example: "2023-10-01T12:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2023-10-01T12:00:00Z"
+
     ResponseMessage:
       type: object
       description: Plain response with a message field
@@ -42,6 +68,12 @@ components:
         message:
           type: string
           example: "Service is healthy"
+  
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header 
+      name: X-API-KEY # name of the header, query parameter or cookie
 
 
 paths: 
@@ -49,6 +81,8 @@ paths:
     post:
       summary: Submit feedback
       operationId: submitFeedback
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -84,6 +118,8 @@ paths:
     get:
       summary: Get all feedbacks
       operationId: getFeedbacks
+      security:
+        - ApiKeyAuth: []
       responses:
         '200':
           description: List of feedbacks
@@ -92,7 +128,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Feedback'
+                  $ref: '#/components/schemas/FeedbackRow'
         '500':
           description: Internal server error
           content:
@@ -104,6 +140,8 @@ paths:
     get:
       summary: Get feedback by ID
       operationId: getFeedbackById
+      security:
+        - ApiKeyAuth: []
       parameters:
         - name: id
           in: path
@@ -116,7 +154,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Feedback'
+                $ref: '#/components/schemas/FeedbackRow'
         '404':
           description: Feedback not found
           content:
@@ -124,7 +162,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseMessage'
   
-
   /health:
     get:
       summary: Health check
@@ -142,6 +179,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HealthStatus'
+  
        
   
 
